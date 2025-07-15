@@ -17,7 +17,7 @@ class CartProvider with ChangeNotifier {
 
   double get totalAmount => _cartItems.fold(
     0.0,
-    (sum, item) => sum + (item.food.price * item.quantity),
+    (sum, item) => sum + item.totalPrice, // Use totalPrice from Cart model
   );
 
   Future<void> loadCart() async {
@@ -39,7 +39,7 @@ class CartProvider with ChangeNotifier {
     try {
       // Check if item already exists in cart
       final existingItemIndex = _cartItems.indexWhere(
-        (item) => item.food.id == food.id,
+        (item) => item.food == food.id, // Compare with food ID string
       );
 
       if (existingItemIndex >= 0) {
@@ -111,7 +111,9 @@ class CartProvider with ChangeNotifier {
 
   Cart? getCartItem(String foodId) {
     try {
-      return _cartItems.firstWhere((item) => item.food.id == foodId);
+      return _cartItems.firstWhere(
+        (item) => item.food == foodId,
+      ); // Compare with food ID string
     } catch (e) {
       return null;
     }
@@ -121,4 +123,13 @@ class CartProvider with ChangeNotifier {
     final item = getCartItem(foodId);
     return item?.quantity ?? 0;
   }
+
+  // Helper method to get cart summary
+  CartSummary get cartSummary => CartSummary.fromItems(_cartItems);
+
+  // Helper method to check if cart is empty
+  bool get isEmpty => _cartItems.isEmpty;
+
+  // Helper method to check if cart has items from multiple restaurants
+  bool get hasMultipleRestaurants => cartSummary.hasMultipleRestaurants;
 }

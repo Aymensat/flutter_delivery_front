@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+  const RegisterScreen({super.key}); // FIX 1: Changed to super.key
 
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
@@ -75,7 +75,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           width: 60,
           height: 60,
           decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            // FIX 3: Replaced .withOpacity(0.1) with .withAlpha
+            color: Theme.of(
+              context,
+            ).primaryColor.withAlpha((255 * 0.1).round()),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Icon(

@@ -1,72 +1,176 @@
-import 'package:app_client/models/cart.dart';
-import 'package:app_client/models/user.dart';
-
-enum OrderStatus {
-  pending,
-  confirmed,
-  preparing,
-  ready,
-  picked_up,
-  delivering,
-  delivered,
-  cancelled,
-}
-
 class Order {
   final String id;
-  final String user;
+  final String userId;
+  final String restaurantId;
+  final String? restaurantName;
   final List<OrderItem> items;
   final double totalAmount;
+  final double deliveryFee;
+  final double tax;
+  final double grandTotal;
   final OrderStatus status;
   final String? deliveryAddress;
   final String? specialInstructions;
-  final String? assignedDriver;
-  final DateTime? estimatedDeliveryTime;
   final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? updatedAt;
+  final DateTime? deliveredAt;
+  final String? paymentMethod;
   final String? paymentId;
-  final bool isPaid;
-  final User? userDetails;
-  final User? driverDetails;
+  final String? deliveryDriverId;
+  final String? deliveryDriverName;
+  final String? deliveryDriverPhone;
+  final int? estimatedDeliveryTime;
+  final String? trackingNumber;
 
   Order({
     required this.id,
-    required this.user,
+    required this.userId,
+    required this.restaurantId,
+    this.restaurantName,
     required this.items,
     required this.totalAmount,
+    required this.deliveryFee,
+    required this.tax,
+    required this.grandTotal,
     required this.status,
     this.deliveryAddress,
     this.specialInstructions,
-    this.assignedDriver,
-    this.estimatedDeliveryTime,
     required this.createdAt,
-    required this.updatedAt,
+    this.updatedAt,
+    this.deliveredAt,
+    this.paymentMethod,
     this.paymentId,
-    this.isPaid = false,
-    this.userDetails,
-    this.driverDetails,
+    this.deliveryDriverId,
+    this.deliveryDriverName,
+    this.deliveryDriverPhone,
+    this.estimatedDeliveryTime,
+    this.trackingNumber,
   });
 
-  // Calculate subtotal from items
-  double get subtotal {
-    return items.fold(0.0, (sum, item) => sum + item.totalPrice);
+  factory Order.fromJson(Map<String, dynamic> json) {
+    return Order(
+      id: json['_id'] ?? json['id'] ?? '',
+      userId: json['userId'] ?? json['user'] ?? '',
+      restaurantId: json['restaurantId'] ?? json['restaurant'] ?? '',
+      restaurantName: json['restaurantName'],
+      items: (json['items'] as List<dynamic>? ?? [])
+          .map((item) => OrderItem.fromJson(item))
+          .toList(),
+      totalAmount: (json['totalAmount'] ?? 0.0).toDouble(),
+      deliveryFee: (json['deliveryFee'] ?? 0.0).toDouble(),
+      tax: (json['tax'] ?? 0.0).toDouble(),
+      grandTotal: (json['grandTotal'] ?? 0.0).toDouble(),
+      status: OrderStatus.values.firstWhere(
+        (e) =>
+            e.name.toLowerCase() == (json['status'] ?? 'pending').toLowerCase(),
+        orElse: () => OrderStatus.pending,
+      ),
+      deliveryAddress: json['deliveryAddress'],
+      specialInstructions: json['specialInstructions'],
+      createdAt: DateTime.parse(
+        json['createdAt'] ?? DateTime.now().toIso8601String(),
+      ),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
+          : null,
+      deliveredAt: json['deliveredAt'] != null
+          ? DateTime.parse(json['deliveredAt'])
+          : null,
+      paymentMethod: json['paymentMethod'],
+      paymentId: json['paymentId'],
+      deliveryDriverId: json['deliveryDriverId'],
+      deliveryDriverName: json['deliveryDriverName'],
+      deliveryDriverPhone: json['deliveryDriverPhone'],
+      estimatedDeliveryTime: json['estimatedDeliveryTime'],
+      trackingNumber: json['trackingNumber'],
+    );
   }
 
-  // Get total items count
-  int get totalItems {
-    return items.fold(0, (sum, item) => sum + item.quantity);
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'userId': userId,
+      'restaurantId': restaurantId,
+      'restaurantName': restaurantName,
+      'items': items.map((item) => item.toJson()).toList(),
+      'totalAmount': totalAmount,
+      'deliveryFee': deliveryFee,
+      'tax': tax,
+      'grandTotal': grandTotal,
+      'status': status.name,
+      'deliveryAddress': deliveryAddress,
+      'specialInstructions': specialInstructions,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+      'deliveredAt': deliveredAt?.toIso8601String(),
+      'paymentMethod': paymentMethod,
+      'paymentId': paymentId,
+      'deliveryDriverId': deliveryDriverId,
+      'deliveryDriverName': deliveryDriverName,
+      'deliveryDriverPhone': deliveryDriverPhone,
+      'estimatedDeliveryTime': estimatedDeliveryTime,
+      'trackingNumber': trackingNumber,
+    };
   }
 
-  // Get estimated delivery time as formatted string
-  String get estimatedDeliveryTimeFormatted {
-    if (estimatedDeliveryTime == null) return 'TBD';
-    final difference = estimatedDeliveryTime!.difference(DateTime.now());
-    if (difference.inMinutes <= 0) return 'Now';
-    if (difference.inMinutes < 60) return '${difference.inMinutes} min';
-    return '${difference.inHours}h ${difference.inMinutes % 60}m';
+  Order copyWith({
+    String? id,
+    String? userId,
+    String? restaurantId,
+    String? restaurantName,
+    List<OrderItem>? items,
+    double? totalAmount,
+    double? deliveryFee,
+    double? tax,
+    double? grandTotal,
+    OrderStatus? status,
+    String? deliveryAddress,
+    String? specialInstructions,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? deliveredAt,
+    String? paymentMethod,
+    String? paymentId,
+    String? deliveryDriverId,
+    String? deliveryDriverName,
+    String? deliveryDriverPhone,
+    int? estimatedDeliveryTime,
+    String? trackingNumber,
+  }) {
+    return Order(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      restaurantId: restaurantId ?? this.restaurantId,
+      restaurantName: restaurantName ?? this.restaurantName,
+      items: items ?? this.items,
+      totalAmount: totalAmount ?? this.totalAmount,
+      deliveryFee: deliveryFee ?? this.deliveryFee,
+      tax: tax ?? this.tax,
+      grandTotal: grandTotal ?? this.grandTotal,
+      status: status ?? this.status,
+      deliveryAddress: deliveryAddress ?? this.deliveryAddress,
+      specialInstructions: specialInstructions ?? this.specialInstructions,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deliveredAt: deliveredAt ?? this.deliveredAt,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      paymentId: paymentId ?? this.paymentId,
+      deliveryDriverId: deliveryDriverId ?? this.deliveryDriverId,
+      deliveryDriverName: deliveryDriverName ?? this.deliveryDriverName,
+      deliveryDriverPhone: deliveryDriverPhone ?? this.deliveryDriverPhone,
+      estimatedDeliveryTime:
+          estimatedDeliveryTime ?? this.estimatedDeliveryTime,
+      trackingNumber: trackingNumber ?? this.trackingNumber,
+    );
   }
 
-  // Get order status as display string
+  // Helper methods
+  bool get isDelivered => status == OrderStatus.delivered;
+  bool get isCancelled => status == OrderStatus.cancelled;
+  bool get isPending => status == OrderStatus.pending;
+  bool get isInProgress =>
+      status == OrderStatus.confirmed || status == OrderStatus.preparing;
+
   String get statusDisplay {
     switch (status) {
       case OrderStatus.pending:
@@ -75,12 +179,10 @@ class Order {
         return 'Confirmed';
       case OrderStatus.preparing:
         return 'Preparing';
-      case OrderStatus.ready:
-        return 'Ready for Pickup';
-      case OrderStatus.picked_up:
+      case OrderStatus.pickedUp:
         return 'Picked Up';
       case OrderStatus.delivering:
-        return 'On the Way';
+        return 'Delivering';
       case OrderStatus.delivered:
         return 'Delivered';
       case OrderStatus.cancelled:
@@ -88,294 +190,96 @@ class Order {
     }
   }
 
-  // Get status color for UI
-  String get statusColor {
-    switch (status) {
-      case OrderStatus.pending:
-        return '#FFA500'; // Orange
-      case OrderStatus.confirmed:
-      case OrderStatus.preparing:
-        return '#2196F3'; // Blue
-      case OrderStatus.ready:
-      case OrderStatus.picked_up:
-      case OrderStatus.delivering:
-        return '#FF9800'; // Amber
-      case OrderStatus.delivered:
-        return '#4CAF50'; // Green
-      case OrderStatus.cancelled:
-        return '#F44336'; // Red
-    }
-  }
-
-  // Check if order can be cancelled
-  bool get canBeCancelled {
-    return status == OrderStatus.pending || status == OrderStatus.confirmed;
-  }
-
-  // Check if order is active (not delivered or cancelled)
-  bool get isActive {
-    return status != OrderStatus.delivered && status != OrderStatus.cancelled;
-  }
-
-  // Get restaurants involved in this order
-  List<String> get restaurantIds {
-    return items.map((item) => item.restaurantId).toSet().toList();
-  }
-
-  // Get restaurant names
-  List<String> get restaurantNames {
-    return items.map((item) => item.restaurantName).toSet().toList();
-  }
-
-  factory Order.fromJson(Map<String, dynamic> json) {
-    return Order(
-      id: json['_id'] ?? '',
-      user: json['user'] ?? '',
-      items:
-          (json['items'] as List<dynamic>?)
-              ?.map((item) => OrderItem.fromJson(item))
-              .toList() ??
-          [],
-      totalAmount: (json['totalAmount'] ?? 0).toDouble(),
-      status: _parseOrderStatus(json['status']),
-      deliveryAddress: json['deliveryAddress'],
-      specialInstructions: json['specialInstructions'],
-      assignedDriver: json['assignedDriver'],
-      estimatedDeliveryTime: json['estimatedDeliveryTime'] != null
-          ? DateTime.parse(json['estimatedDeliveryTime'])
-          : null,
-      createdAt: DateTime.parse(
-        json['createdAt'] ?? DateTime.now().toIso8601String(),
-      ),
-      updatedAt: DateTime.parse(
-        json['updatedAt'] ?? DateTime.now().toIso8601String(),
-      ),
-      paymentId: json['paymentId'],
-      isPaid: json['isPaid'] ?? false,
-      userDetails: json['userDetails'] != null
-          ? User.fromJson(json['userDetails'])
-          : null,
-      driverDetails: json['driverDetails'] != null
-          ? User.fromJson(json['driverDetails'])
-          : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'user': user,
-      'items': items.map((item) => item.toJson()).toList(),
-      'totalAmount': totalAmount,
-      'status': status.name,
-      'deliveryAddress': deliveryAddress,
-      'specialInstructions': specialInstructions,
-      'assignedDriver': assignedDriver,
-      'estimatedDeliveryTime': estimatedDeliveryTime?.toIso8601String(),
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
-      'paymentId': paymentId,
-      'isPaid': isPaid,
-      if (userDetails != null) 'userDetails': userDetails!.toJson(),
-      if (driverDetails != null) 'driverDetails': driverDetails!.toJson(),
-    };
-  }
-
-  // Create order for API request
-  Map<String, dynamic> toCreateJson() {
-    return {
-      'items': items.map((item) => item.toCreateJson()).toList(),
-      'totalAmount': totalAmount,
-      'deliveryAddress': deliveryAddress,
-      'specialInstructions': specialInstructions,
-    };
-  }
-
-  Order copyWith({
-    String? id,
-    String? user,
-    List<OrderItem>? items,
-    double? totalAmount,
-    OrderStatus? status,
-    String? deliveryAddress,
-    String? specialInstructions,
-    String? assignedDriver,
-    DateTime? estimatedDeliveryTime,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    String? paymentId,
-    bool? isPaid,
-    User? userDetails,
-    User? driverDetails,
-  }) {
-    return Order(
-      id: id ?? this.id,
-      user: user ?? this.user,
-      items: items ?? this.items,
-      totalAmount: totalAmount ?? this.totalAmount,
-      status: status ?? this.status,
-      deliveryAddress: deliveryAddress ?? this.deliveryAddress,
-      specialInstructions: specialInstructions ?? this.specialInstructions,
-      assignedDriver: assignedDriver ?? this.assignedDriver,
-      estimatedDeliveryTime:
-          estimatedDeliveryTime ?? this.estimatedDeliveryTime,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-      paymentId: paymentId ?? this.paymentId,
-      isPaid: isPaid ?? this.isPaid,
-      userDetails: userDetails ?? this.userDetails,
-      driverDetails: driverDetails ?? this.driverDetails,
-    );
-  }
-
   @override
   String toString() {
-    return 'Order(id: $id, status: $statusDisplay, total: ${totalAmount.toStringAsFixed(2)})';
+    return 'Order(id: $id, status: $status, totalAmount: $totalAmount, items: ${items.length})';
   }
+}
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is Order && other.id == id;
-  }
-
-  @override
-  int get hashCode => id.hashCode;
-
-  static OrderStatus _parseOrderStatus(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'pending':
-        return OrderStatus.pending;
-      case 'confirmed':
-        return OrderStatus.confirmed;
-      case 'preparing':
-        return OrderStatus.preparing;
-      case 'ready':
-        return OrderStatus.ready;
-      case 'picked_up':
-        return OrderStatus.picked_up;
-      case 'delivering':
-        return OrderStatus.delivering;
-      case 'delivered':
-        return OrderStatus.delivered;
-      case 'cancelled':
-        return OrderStatus.cancelled;
-      default:
-        return OrderStatus.pending;
-    }
-  }
+// Fixed enum name (was picked_up, now pickedUp)
+enum OrderStatus {
+  pending,
+  confirmed,
+  preparing,
+  pickedUp, // Fixed: was picked_up
+  delivering,
+  delivered,
+  cancelled,
 }
 
 class OrderItem {
+  final String id;
   final String foodId;
   final String foodName;
+  final String? foodImage;
+  final double price;
   final int quantity;
-  final double unitPrice;
-  final String restaurantId;
-  final String restaurantName;
-  final String? foodImageUrl;
-  final List<String>? specialRequests;
+  final double totalPrice;
+  final List<String>? specialInstructions;
 
   OrderItem({
+    required this.id,
     required this.foodId,
     required this.foodName,
+    this.foodImage,
+    required this.price,
     required this.quantity,
-    required this.unitPrice,
-    required this.restaurantId,
-    required this.restaurantName,
-    this.foodImageUrl,
-    this.specialRequests,
+    required this.totalPrice,
+    this.specialInstructions,
   });
-
-  double get totalPrice => unitPrice * quantity;
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
-      foodId: json['foodId'] ?? '',
-      foodName: json['foodName'] ?? '',
+      id: json['_id'] ?? json['id'] ?? '',
+      foodId: json['foodId'] ?? json['food'] ?? '',
+      foodName: json['foodName'] ?? json['name'] ?? '',
+      foodImage: json['foodImage'] ?? json['imageUrl'],
+      price: (json['price'] ?? 0.0).toDouble(),
       quantity: json['quantity'] ?? 1,
-      unitPrice: (json['unitPrice'] ?? 0).toDouble(),
-      restaurantId: json['restaurantId'] ?? '',
-      restaurantName: json['restaurantName'] ?? '',
-      foodImageUrl: json['foodImageUrl'],
-      specialRequests: json['specialRequests'] != null
-          ? List<String>.from(json['specialRequests'])
+      totalPrice: (json['totalPrice'] ?? 0.0).toDouble(),
+      specialInstructions: json['specialInstructions'] != null
+          ? List<String>.from(json['specialInstructions'])
           : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'foodId': foodId,
       'foodName': foodName,
+      'foodImage': foodImage,
+      'price': price,
       'quantity': quantity,
-      'unitPrice': unitPrice,
-      'restaurantId': restaurantId,
-      'restaurantName': restaurantName,
-      'foodImageUrl': foodImageUrl,
-      'specialRequests': specialRequests,
+      'totalPrice': totalPrice,
+      'specialInstructions': specialInstructions,
     };
-  }
-
-  Map<String, dynamic> toCreateJson() {
-    return {
-      'foodId': foodId,
-      'quantity': quantity,
-      'unitPrice': unitPrice,
-      'specialRequests': specialRequests,
-    };
-  }
-
-  // Create from Cart item
-  factory OrderItem.fromCart(Cart cartItem) {
-    return OrderItem(
-      foodId: cartItem.food,
-      foodName: cartItem.foodName,
-      quantity: cartItem.quantity,
-      unitPrice: cartItem.unitPrice ?? cartItem.foodDetails?.price ?? 0.0,
-      restaurantId: cartItem.foodDetails?.restaurant ?? '',
-      restaurantName: cartItem.restaurantName,
-      foodImageUrl: cartItem.foodImageUrl,
-    );
   }
 
   OrderItem copyWith({
+    String? id,
     String? foodId,
     String? foodName,
+    String? foodImage,
+    double? price,
     int? quantity,
-    double? unitPrice,
-    String? restaurantId,
-    String? restaurantName,
-    String? foodImageUrl,
-    List<String>? specialRequests,
+    double? totalPrice,
+    List<String>? specialInstructions,
   }) {
     return OrderItem(
+      id: id ?? this.id,
       foodId: foodId ?? this.foodId,
       foodName: foodName ?? this.foodName,
+      foodImage: foodImage ?? this.foodImage,
+      price: price ?? this.price,
       quantity: quantity ?? this.quantity,
-      unitPrice: unitPrice ?? this.unitPrice,
-      restaurantId: restaurantId ?? this.restaurantId,
-      restaurantName: restaurantName ?? this.restaurantName,
-      foodImageUrl: foodImageUrl ?? this.foodImageUrl,
-      specialRequests: specialRequests ?? this.specialRequests,
+      totalPrice: totalPrice ?? this.totalPrice,
+      specialInstructions: specialInstructions ?? this.specialInstructions,
     );
   }
 
   @override
   String toString() {
-    return 'OrderItem(food: $foodName, quantity: $quantity, total: ${totalPrice.toStringAsFixed(2)})';
+    return 'OrderItem(foodName: $foodName, quantity: $quantity, totalPrice: $totalPrice)';
   }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is OrderItem && other.foodId == foodId;
-  }
-
-  @override
-  int get hashCode => foodId.hashCode;
 }
-
-// Import User model - you'll need to add this import at the top of the file
-// import 'user.dart';
-// import 'cart.dart';
