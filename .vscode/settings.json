@@ -1,0 +1,6 @@
+{
+  "easyCopyErrors.useNewFormat": true,
+  "easyCopyErrors.includeFileName": false,
+  "easyCopyErrors.errorsOnly": true,
+  "easyCopyErrors.format": "🔥 ONLY MESSAGE: ${message} 🔥"
+}
