@@ -25,6 +25,12 @@ class RestaurantProvider with ChangeNotifier {
   String get searchQuery => _searchQuery;
   String get selectedCategory => _selectedCategory;
 
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    _applyFilters(); // Call _applyFilters to update filteredRestaurants based on the new query
+    notifyListeners(); // Notify listeners that the state has changed
+  }
+
   // Load restaurants
   Future<void> loadRestaurants({double? lat, double? lon}) async {
     _isLoading = true;

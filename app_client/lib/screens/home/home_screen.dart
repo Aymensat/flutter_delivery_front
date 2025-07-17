@@ -4,7 +4,7 @@ import '../../models/restaurant.dart';
 import '../../providers/restaurant_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/restaurant_card.dart';
-import '../../widgets/search_bar.dart';
+import '../../widgets/search_bar.dart' as CustomSearchBar;
 import '../../widgets/category_filter.dart'
     as CategoryFilterWidget; // FIX: Use prefix to avoid name conflict
 import 'restaurant_detail_screen.dart';
@@ -97,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.all(16.0),
-              child: SearchBar(
+              child: CustomSearchBar.SearchBar(
                 controller: _searchController,
                 onChanged: _onSearchChanged,
                 hintText: 'Search restaurants...',

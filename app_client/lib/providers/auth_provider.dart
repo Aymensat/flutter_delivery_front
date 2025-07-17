@@ -22,11 +22,10 @@ class AuthProvider with ChangeNotifier {
   AuthProvider() {
     _loadStoredAuth();
   }
-
   Future<String?> getUserId() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final userJsonString = prefs.getString(_userKey);
+      final userJsonString = prefs.getString(AuthService.userKey);
       if (userJsonString != null) {
         final userData = jsonDecode(userJsonString);
         // Assuming your User model has an 'id' or '_id' field
@@ -129,7 +128,7 @@ class AuthProvider with ChangeNotifier {
     _setLoading(true);
     _clearError();
     try {
-      await _authService.logout(_token!);
+      await _authService.logout();
       _token = null;
       _user = null;
       final prefs = await SharedPreferences.getInstance();
@@ -169,7 +168,7 @@ class AuthProvider with ChangeNotifier {
       await prefs.setString('auth_token', _token!);
     }
     if (_user != null) {
-      await prefs.setString('user_data', _user!.toJson());
+      await prefs.setString(AuthService.userKey, _user!.toJson());
     }
   }
 

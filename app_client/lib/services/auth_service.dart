@@ -8,7 +8,7 @@ import '../config/app_config.dart';
 class AuthService {
   final String _baseUrl = AppConfig.baseUrl;
   static const String _tokenKey = 'auth_token';
-  static const String _userKey = 'user_data';
+  static const String userKey = 'user_data';
 
   Future<String?> getToken() async {
     try {
@@ -23,7 +23,7 @@ class AuthService {
   Future<String?> getUserId() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final userJsonString = prefs.getString(_userKey);
+      final userJsonString = prefs.getString(userKey);
       if (userJsonString != null) {
         final userData = jsonDecode(userJsonString);
         // Assuming your User model has an 'id' or '_id' field
@@ -41,7 +41,7 @@ class AuthService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_tokenKey);
-      await prefs.remove(_userKey);
+      await prefs.remove(userKey);
       // You might also want to clear current user state in AuthProvider
       debugPrint('User logged out, data cleared from storage.');
     } catch (e) {

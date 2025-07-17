@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 class SearchBar extends StatefulWidget {
+  final TextEditingController controller;
   final String hintText;
   final Function(String) onChanged;
   final Function(String)? onSubmitted;
 
   const SearchBar({
+    required this.controller,
     super.key,
     this.hintText = 'Search restaurants or food...',
     required this.onChanged,

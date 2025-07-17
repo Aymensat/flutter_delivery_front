@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/app_config.dart';
 import '../models/cart.dart'; // Ensure this is imported and correctly defines `Cart`
-import '../models/food.dart'; // Ensure this is imported
 import 'auth_service.dart'; // Ensure this is imported
+import 'package:flutter/foundation.dart';
 
 class CartService {
   final String _baseUrl = AppConfig.baseUrl;
@@ -204,7 +204,7 @@ class CartService {
   Future<int> getCartItemCount() async {
     try {
       final cartItems = await getCartItems();
-      return cartItems.fold(0, (sum, item) => sum + item.quantity);
+      return cartItems.fold<int>(0, (int sum, item) => sum + item.quantity);
     } catch (e) {
       debugPrint('Error getting cart item count: $e');
       return 0;
