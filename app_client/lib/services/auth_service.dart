@@ -10,51 +10,46 @@ class AuthService {
   static const String _tokenKey = 'auth_token';
   static const String _userKey = 'user_data';
 
-  // CRITICAL FIX 1: Add missing getToken() method
   Future<String?> getToken() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getString(_tokenKey);
     } catch (e) {
-      debugPrint('Error getting token: $e'); // Changed from print to debugPrint
+      debugPrint('Error getting token: $e');
       return null;
     }
   }
 
-  // Helper method to save token
-  Future<void> _saveToken(String token) async {
+  Future<String?> getUserId() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_tokenKey, token);
+      final userJsonString = prefs.getString(_userKey);
+      if (userJsonString != null) {
+        final userData = jsonDecode(userJsonString);
+        // Assuming your User model has an 'id' or '_id' field
+        return userData['_id'] ?? userData['id'] as String?;
+      }
+      return null;
     } catch (e) {
-      debugPrint('Error saving token: $e'); // Changed from print to debugPrint
+      debugPrint('Error getting user ID from SharedPreferences: $e');
+      return null;
     }
   }
 
-  // Helper method to save user data
-  Future<void> _saveUserData(Map<String, dynamic> userData) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_userKey, jsonEncode(userData));
-    } catch (e) {
-      debugPrint(
-        'Error saving user data: $e',
-      ); // Changed from print to debugPrint
-    }
-  }
-
-  // Helper method to clear auth data
-  Future<void> clearAuthData() async {
+  // Add the logout method here if it's missing (referencing Line 115 in auth_provider.dart)
+  Future<void> logout() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_tokenKey);
       await prefs.remove(_userKey);
+      // You might also want to clear current user state in AuthProvider
+      debugPrint('User logged out, data cleared from storage.');
     } catch (e) {
-      debugPrint(
-        'Error clearing auth data: $e',
-      ); // Changed from print to debugPrint
+      debugPrint('Error during logout: $e');
     }
   }
+
+  // Removed _saveToken and _saveUserData as they were unused and AuthProvider handles persistence directly.
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
@@ -66,21 +61,8 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-
-        // Save token and user data for future use
-        if (data['token'] != null) {
-          await _saveToken(data['token']);
-        }
-        if (data['user'] != null) {
-          await _saveUserData(data['user']);
-        }
-
-        return {
-          'success': true,
-          'token': data['token'],
-          'user': data['user'],
-          'message': data['message'],
-        };
+        // Assuming your backend returns token and user data upon successful login
+        return {'success': true, 'token': data['token'], 'user': data['user']};
       } else {
         final errorData = jsonDecode(response.body);
         return {
@@ -93,14 +75,15 @@ class AuthService {
     }
   }
 
+  // CRITICAL FIX: Added register method based on OpenAPI spec and AuthProvider's call
   Future<Map<String, dynamic>> register({
     required String username,
     required String firstName,
-    required String name,
+    required String name, // Corresponds to lastName in AuthProvider
     required String email,
     required String password,
     required String phone,
-    String role = 'client',
+    required String role,
   }) async {
     try {
       final response = await http.post(
@@ -109,7 +92,7 @@ class AuthService {
         body: jsonEncode({
           'username': username,
           'firstName': firstName,
-          'name': name,
+          'name': name, // 'name' in backend typically refers to lastName
           'email': email,
           'password': password,
           'phone': phone,
@@ -118,21 +101,11 @@ class AuthService {
       );
 
       if (response.statusCode == 201) {
+        // Assuming 201 Created for successful registration
         final data = jsonDecode(response.body);
-
-        // Save token and user data for future use
-        if (data['token'] != null) {
-          await _saveToken(data['token']);
-        }
-        if (data['user'] != null) {
-          await _saveUserData(data['user']);
-        }
-
         return {
           'success': true,
-          'token': data['token'],
-          'user': data['user'],
-          'message': data['message'],
+          'message': data['message'] ?? 'Registration successful',
         };
       } else {
         final errorData = jsonDecode(response.body);
@@ -146,187 +119,51 @@ class AuthService {
     }
   }
 
+  // Placeholder for updateProfile method
   Future<Map<String, dynamic>> updateProfile(
+    String userId,
     Map<String, dynamic> userData,
   ) async {
-    try {
-      final token = await getToken();
-      if (token == null) {
-        return {'success': false, 'message': 'No authentication token found'};
-      }
+    debugPrint('AuthService.updateProfile not implemented yet.');
+    return {'success': false, 'message': 'Profile update not implemented'};
+  }
 
-      final response = await http.put(
-        Uri.parse('$_baseUrl/users/me'),
+  // Placeholder for changePassword method
+  Future<Map<String, dynamic>> changePassword(
+    String oldPassword,
+    String newPassword,
+  ) async {
+    debugPrint('AuthService.changePassword not implemented yet.');
+    return {'success': false, 'message': 'Change password not implemented'};
+  }
+
+  // Placeholder for resetPassword method
+  Future<Map<String, dynamic>> resetPassword(String email) async {
+    debugPrint('AuthService.resetPassword not implemented yet.');
+    return {'success': false, 'message': 'Password reset not implemented'};
+  }
+
+  // Placeholder for getCurrentUser method
+  Future<Map<String, dynamic>> getCurrentUser(String token) async {
+    debugPrint(
+      'AuthService.getCurrentUser not fully implemented yet. Returning dummy data.',
+    );
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/users/me'), // Assuming /users/me endpoint
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode(userData),
       );
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-
-        // Update saved user data
-        if (data['user'] != null) {
-          await _saveUserData(data['user']);
-        }
-
-        return {
-          'success': true,
-          'user': data['user'],
-          'message': data['message'],
-        };
+        return {'success': true, 'user': data};
       } else {
         final errorData = jsonDecode(response.body);
         return {
           'success': false,
-          'message': errorData['message'] ?? 'Update failed',
-        };
-      }
-    } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
-    }
-  }
-
-  Future<Map<String, dynamic>> getCurrentUser([String? token]) async {
-    try {
-      final authToken = token ?? await getToken();
-      if (authToken == null) {
-        return {'success': false, 'message': 'No authentication token found'};
-      }
-
-      final response = await http.get(
-        Uri.parse('$_baseUrl/users/me'),
-        headers: {
-          'Authorization': 'Bearer $authToken',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return {'success': true, 'user': data['user']};
-      } else {
-        return {'success': false, 'message': 'Failed to get user data'};
-      }
-    } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
-    }
-  }
-
-  Future<Map<String, dynamic>> refreshToken([String? token]) async {
-    try {
-      final authToken = token ?? await getToken();
-      if (authToken == null) {
-        return {'success': false, 'message': 'No authentication token found'};
-      }
-
-      final response = await http.post(
-        Uri.parse('$_baseUrl/auth/refresh'),
-        headers: {
-          'Authorization': 'Bearer $authToken',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        // Save new token
-        if (data['token'] != null) {
-          await _saveToken(data['token']);
-        }
-
-        return {'success': true, 'token': data['token']};
-      } else {
-        return {'success': false, 'message': 'Token refresh failed'};
-      }
-    } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
-    }
-  }
-
-  Future<Map<String, dynamic>> changePassword({
-    String? token,
-    required String currentPassword,
-    required String newPassword,
-  }) async {
-    try {
-      final authToken = token ?? await getToken();
-      if (authToken == null) {
-        return {'success': false, 'message': 'No authentication token found'};
-      }
-
-      final response = await http.post(
-        Uri.parse('$_baseUrl/auth/change-password'),
-        headers: {
-          'Authorization': 'Bearer $authToken',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'currentPassword': currentPassword,
-          'newPassword': newPassword,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return {'success': true, 'message': data['message']};
-      } else {
-        final errorData = jsonDecode(response.body);
-        return {
-          'success': false,
-          'message': errorData['message'] ?? 'Password change failed',
-        };
-      }
-    } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
-    }
-  }
-
-  Future<Map<String, dynamic>> forgotPassword(String email) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/auth/forgot-password'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email}),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return {'success': true, 'message': data['message']};
-      } else {
-        final errorData = jsonDecode(response.body);
-        return {
-          'success': false,
-          'message': errorData['message'] ?? 'Password reset failed',
-        };
-      }
-    } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
-    }
-  }
-
-  Future<Map<String, dynamic>> resetPassword({
-    required String token,
-    required String newPassword,
-  }) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/auth/reset-password'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'token': token, 'newPassword': newPassword}),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return {'success': true, 'message': data['message']};
-      } else {
-        final errorData = jsonDecode(response.body);
-        return {
-          'success': false,
-          'message': errorData['message'] ?? 'Password reset failed',
+          'message': errorData['message'] ?? 'Failed to fetch current user',
         };
       }
     } catch (e) {
@@ -355,16 +192,5 @@ class AuthService {
     } catch (e) {
       return {'success': false, 'message': 'Network error: ${e.toString()}'};
     }
-  }
-
-  // Logout method
-  Future<void> logout() async {
-    await clearAuthData();
-  }
-
-  // Check if user is logged in
-  Future<bool> isLoggedIn() async {
-    final token = await getToken();
-    return token != null && token.isNotEmpty;
   }
 }

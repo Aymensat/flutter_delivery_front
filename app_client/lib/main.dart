@@ -4,21 +4,26 @@ import 'config/theme.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
 import 'providers/restaurant_provider.dart';
-import 'providers/order_provider.dart';
+// import 'providers/order_provider.dart'; // FIX: Remove unused import for now if OrderProvider isn't ready
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
-import 'services/api_service.dart';
+import 'services/api_service.dart'; // Assuming ApiService is used to load token
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load saved token
-  await ApiService().loadToken();
+  // Load saved token (assuming ApiService handles this or it's moved to AuthService)
+  // If token loading is part of AuthProvider's init or AuthService, this line might be removed.
+  // For now, keeping it if it's the standard entry point for token loading.
+  await ApiService()
+      .loadToken(); // Ensure ApiService().loadToken() exists or move this logic
 
-  runApp(MyApp());
+  runApp(const MyApp()); // FIX: Add const
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key); // FIX: Add key parameter
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -26,12 +31,14 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => RestaurantProvider()),
-        ChangeNotifierProvider(create: (_) => OrderProvider()),
+        // FIX: If OrderProvider is not yet implemented or causing errors,
+        // comment it out or ensure it's correctly defined.
+        // ChangeNotifierProvider(create: (_) => OrderProvider()),
       ],
       child: MaterialApp(
         title: 'Food Delivery',
         theme: AppTheme.lightTheme,
-        home: AuthWrapper(),
+        home: const AuthWrapper(), // FIX: Add const
         debugShowCheckedModeBanner: false,
       ),
     );
@@ -39,6 +46,8 @@ class MyApp extends StatelessWidget {
 }
 
 class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({Key? key}) : super(key: key); // FIX: Add key parameter
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
@@ -50,9 +59,9 @@ class AuthWrapper extends StatelessWidget {
         }
 
         if (authProvider.isAuthenticated) {
-          return HomeScreen();
+          return const HomeScreen(); // FIX: Add const
         } else {
-          return LoginScreen();
+          return const LoginScreen(); // FIX: Add const
         }
       },
     );

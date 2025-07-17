@@ -1,5 +1,6 @@
 // lib/providers/auth_provider.dart
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
@@ -20,6 +21,22 @@ class AuthProvider with ChangeNotifier {
 
   AuthProvider() {
     _loadStoredAuth();
+  }
+
+  Future<String?> getUserId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userJsonString = prefs.getString(_userKey);
+      if (userJsonString != null) {
+        final userData = jsonDecode(userJsonString);
+        // Assuming your User model has an 'id' or '_id' field
+        return userData['_id'] ?? userData['id'] as String?;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting user ID from SharedPreferences: $e');
+      return null;
+    }
   }
 
   Future<void> _loadStoredAuth() async {
@@ -47,19 +64,18 @@ class AuthProvider with ChangeNotifier {
       if (response['success'] == true) {
         _token = response['token'];
         _user = User.fromMap(response['user']);
-
         await _saveAuthData();
-        _setLoading(false);
+        notifyListeners();
         return true;
       } else {
         _setError(response['message'] ?? 'Login failed');
-        _setLoading(false);
         return false;
       }
     } catch (e) {
-      _setError('Network error. Please try again.');
-      _setLoading(false);
+      _setError('Network error: ${e.toString()}');
       return false;
+    } finally {
+      _setLoading(false);
     }
   }
 
@@ -70,7 +86,7 @@ class AuthProvider with ChangeNotifier {
     required String email,
     required String password,
     required String phone,
-    String role = 'client',
+    required String role,
   }) async {
     _setLoading(true);
     _clearError();
@@ -87,165 +103,44 @@ class AuthProvider with ChangeNotifier {
       );
 
       if (response['success'] == true) {
+        // Optionally log in the user directly after successful registration
+        // For simplicity, we might just navigate them to the login screen
+        // You can uncomment the following lines if you want auto-login
+        /*
         _token = response['token'];
         _user = User.fromMap(response['user']);
-
         await _saveAuthData();
-        _setLoading(false);
+        */
+        notifyListeners();
         return true;
       } else {
         _setError(response['message'] ?? 'Registration failed');
-        _setLoading(false);
         return false;
       }
     } catch (e) {
-      _setError('Network error. Please try again.');
-      _setLoading(false);
+      _setError('Network error: ${e.toString()}');
       return false;
+    } finally {
+      _setLoading(false);
     }
   }
 
   Future<void> logout() async {
-    _user = null;
-    _token = null;
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
-    await prefs.remove('user_data');
-
-    notifyListeners();
-  }
-
-  Future<bool> updateProfile(Map<String, dynamic> userData) async {
     _setLoading(true);
     _clearError();
-
     try {
-      // Add token to userData for authentication
-      final updateData = {...userData, 'token': _token};
-
-      final response = await _authService.updateProfile(updateData);
-
-      if (response['success'] == true) {
-        _user = User.fromMap(response['user']);
-        await _saveAuthData();
-        _setLoading(false);
-        return true;
-      } else {
-        _setError(response['message'] ?? 'Update failed');
-        _setLoading(false);
-        return false;
-      }
+      await _authService.logout(_token!);
+      _token = null;
+      _user = null;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('auth_token');
+      await prefs.remove('user_data');
+      notifyListeners();
     } catch (e) {
-      _setError('Network error. Please try again.');
+      debugPrint('Error logging out: $e');
+      _setError('Logout failed: ${e.toString()}');
+    } finally {
       _setLoading(false);
-      return false;
-    }
-  }
-
-  Future<bool> changePassword({
-    required String currentPassword,
-    required String newPassword,
-  }) async {
-    if (_token == null) {
-      _setError('Not authenticated');
-      return false;
-    }
-
-    _setLoading(true);
-    _clearError();
-
-    try {
-      final response = await _authService.changePassword(
-        token: _token!,
-        currentPassword: currentPassword,
-        newPassword: newPassword,
-      );
-
-      if (response['success'] == true) {
-        _setLoading(false);
-        return true;
-      } else {
-        _setError(response['message'] ?? 'Password change failed');
-        _setLoading(false);
-        return false;
-      }
-    } catch (e) {
-      _setError('Network error. Please try again.');
-      _setLoading(false);
-      return false;
-    }
-  }
-
-  Future<bool> forgotPassword(String email) async {
-    _setLoading(true);
-    _clearError();
-
-    try {
-      final response = await _authService.forgotPassword(email);
-
-      if (response['success'] == true) {
-        _setLoading(false);
-        return true;
-      } else {
-        _setError(response['message'] ?? 'Password reset failed');
-        _setLoading(false);
-        return false;
-      }
-    } catch (e) {
-      _setError('Network error. Please try again.');
-      _setLoading(false);
-      return false;
-    }
-  }
-
-  Future<bool> resetPassword({
-    required String token,
-    required String newPassword,
-  }) async {
-    _setLoading(true);
-    _clearError();
-
-    try {
-      final response = await _authService.resetPassword(
-        token: token,
-        newPassword: newPassword,
-      );
-
-      if (response['success'] == true) {
-        _setLoading(false);
-        return true;
-      } else {
-        _setError(response['message'] ?? 'Password reset failed');
-        _setLoading(false);
-        return false;
-      }
-    } catch (e) {
-      _setError('Network error. Please try again.');
-      _setLoading(false);
-      return false;
-    }
-  }
-
-  Future<bool> verifyEmail(String token) async {
-    _setLoading(true);
-    _clearError();
-
-    try {
-      final response = await _authService.verifyEmail(token);
-
-      if (response['success'] == true) {
-        _setLoading(false);
-        return true;
-      } else {
-        _setError(response['message'] ?? 'Email verification failed');
-        _setLoading(false);
-        return false;
-      }
-    } catch (e) {
-      _setError('Network error. Please try again.');
-      _setLoading(false);
-      return false;
     }
   }
 
@@ -301,17 +196,6 @@ class AuthProvider with ChangeNotifier {
   bool isTokenValid() {
     // Add token validation logic here
     // For now, just check if token exists
-    return _token != null && _token!.isNotEmpty;
-  }
-
-  // Helper method to get auth headers
-  Map<String, String> getAuthHeaders() {
-    if (_token != null) {
-      return {
-        'Authorization': 'Bearer $_token',
-        'Content-Type': 'application/json',
-      };
-    }
-    return {'Content-Type': 'application/json'};
+    return _token != null;
   }
 }

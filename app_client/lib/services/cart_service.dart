@@ -2,16 +2,16 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/app_config.dart';
-import '../models/cart.dart';
-import '../models/food.dart';
-import 'auth_service.dart';
+import '../models/cart.dart'; // Ensure this is imported and correctly defines `Cart`
+import '../models/food.dart'; // Ensure this is imported
+import 'auth_service.dart'; // Ensure this is imported
 
 class CartService {
   final String _baseUrl = AppConfig.baseUrl;
   final AuthService _authService = AuthService();
 
-  // CRITICAL FIX 2: Get cart items with proper Food object integration
-  Future<List<CartItem>> getCartItems() async {
+  // FIX: Change return type from List<CartItem> to List<Cart>
+  Future<List<Cart>> getCartItems() async {
     try {
       final token = await _authService.getToken();
       if (token == null) {
@@ -29,111 +29,48 @@ class CartService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
-        // Handle both single cart object and array of cart items
-        if (data is Map<String, dynamic>) {
-          // If API returns a cart object with items array
-          if (data['items'] != null) {
-            return await _processCartItems(data['items']);
-          }
-          // If API returns a single cart item
-          else {
-            return await _processCartItems([data]);
-          }
-        } else if (data is List) {
-          // If API returns array of cart items directly
-          return await _processCartItems(data);
+        // FIX: Handle API response consistently for a list of Cart objects
+        if (data is List) {
+          // If the API returns an array of cart items directly
+          return data.map((json) => Cart.fromJson(json)).toList();
+        } else if (data is Map<String, dynamic> && data['items'] is List) {
+          // If the API returns a cart object with an 'items' array
+          return (data['items'] as List)
+              .map((json) => Cart.fromJson(json))
+              .toList();
+        } else {
+          // If the API returns a single cart item
+          return [Cart.fromJson(data)];
         }
-
-        return [];
       } else {
-        throw Exception('Failed to load cart items');
+        final errorData = jsonDecode(response.body);
+        throw Exception(errorData['message'] ?? 'Failed to load cart items');
       }
     } catch (e) {
-      throw Exception('Error fetching cart items: ${e.toString()}');
+      debugPrint('Error getting cart items: $e'); // Use debugPrint
+      throw Exception('Network error: ${e.toString()}');
     }
   }
 
-  // Helper method to process cart items and fetch food details
-  Future<List<CartItem>> _processCartItems(List<dynamic> items) async {
-    List<CartItem> cartItems = [];
-
-    for (var item in items) {
-      try {
-        // Check if food is already a full object or just an ID
-        Food? foodDetails;
-
-        if (item['food'] is String) {
-          // Food is just an ID, fetch full details
-          foodDetails = await _fetchFoodDetails(item['food']);
-        } else if (item['food'] is Map<String, dynamic>) {
-          // Food is already a full object
-          foodDetails = Food.fromJson(item['food']);
-        }
-
-        if (foodDetails != null) {
-          cartItems.add(
-            CartItem(
-              id: item['_id'] ?? '',
-              user: item['user'] ?? '',
-              food: foodDetails,
-              quantity: item['quantity'] ?? 1,
-              price: (item['price'] ?? foodDetails.price).toDouble(),
-              foodDetails: foodDetails, // Add food details for UI compatibility
-            ),
-          );
-        }
-      } catch (e) {
-        print('Error processing cart item: $e');
-        // Skip this item but continue processing others
-      }
-    }
-
-    return cartItems;
-  }
-
-  // Fetch complete food details by ID
-  Future<Food?> _fetchFoodDetails(String foodId) async {
-    try {
-      final token = await _authService.getToken();
-      if (token == null) return null;
-
-      final response = await http.get(
-        Uri.parse('$_baseUrl/foods/$foodId'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return Food.fromJson(data);
-      }
-      return null;
-    } catch (e) {
-      print('Error fetching food details: $e');
-      return null;
-    }
-  }
-
-  // Add item to cart
-  Future<Map<String, dynamic>> addToCart({
+  // FIX: Add named parameters userId and token, change foodId to String
+  Future<Map<String, dynamic>> addItemToCart({
+    required String userId,
     required String foodId,
     required int quantity,
+    required String token,
   }) async {
     try {
-      final token = await _authService.getToken();
-      if (token == null) {
-        return {'success': false, 'message': 'No authentication token found'};
-      }
-
       final response = await http.post(
-        Uri.parse('$_baseUrl/cart'),
+        Uri.parse('$_baseUrl/cart/add'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({'food': foodId, 'quantity': quantity}),
+        body: jsonEncode({
+          'userId': userId,
+          'foodId': foodId,
+          'quantity': quantity,
+        }),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -141,34 +78,33 @@ class CartService {
         return {'success': true, 'data': data};
       } else {
         final errorData = jsonDecode(response.body);
-        return {
-          'success': false,
-          'message': errorData['message'] ?? 'Failed to add to cart',
-        };
+        throw Exception(errorData['message'] ?? 'Failed to add item to cart');
       }
     } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+      debugPrint('Error adding item to cart: $e'); // Use debugPrint
+      throw Exception('Network error: ${e.toString()}');
     }
   }
 
-  // Update cart item quantity
-  Future<Map<String, dynamic>> updateCartItem({
+  // FIX: Add named parameters userId and token
+  Future<Map<String, dynamic>> updateCartItemQuantity({
+    required String userId,
     required String cartItemId,
     required int quantity,
+    required String token,
   }) async {
     try {
-      final token = await _authService.getToken();
-      if (token == null) {
-        return {'success': false, 'message': 'No authentication token found'};
-      }
-
       final response = await http.put(
-        Uri.parse('$_baseUrl/cart/$cartItemId'),
+        Uri.parse('$_baseUrl/cart/update'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({'quantity': quantity}),
+        body: jsonEncode({
+          'userId': userId,
+          'cartItemId': cartItemId,
+          'quantity': quantity,
+        }),
       );
 
       if (response.statusCode == 200) {
@@ -176,30 +112,30 @@ class CartService {
         return {'success': true, 'data': data};
       } else {
         final errorData = jsonDecode(response.body);
-        return {
-          'success': false,
-          'message': errorData['message'] ?? 'Failed to update cart item',
-        };
+        throw Exception(
+          errorData['message'] ?? 'Failed to update cart item quantity',
+        );
       }
     } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+      debugPrint('Error updating cart item quantity: $e'); // Use debugPrint
+      throw Exception('Network error: ${e.toString()}');
     }
   }
 
-  // Remove item from cart
-  Future<Map<String, dynamic>> removeFromCart(String cartItemId) async {
+  // FIX: Add named parameters userId and token
+  Future<Map<String, dynamic>> removeCartItem({
+    required String userId,
+    required String cartItemId,
+    required String token,
+  }) async {
     try {
-      final token = await _authService.getToken();
-      if (token == null) {
-        return {'success': false, 'message': 'No authentication token found'};
-      }
-
       final response = await http.delete(
-        Uri.parse('$_baseUrl/cart/$cartItemId'),
+        Uri.parse('$_baseUrl/cart/remove'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
+        body: jsonEncode({'userId': userId, 'cartItemId': cartItemId}),
       );
 
       if (response.statusCode == 200) {
@@ -207,30 +143,28 @@ class CartService {
         return {'success': true, 'data': data};
       } else {
         final errorData = jsonDecode(response.body);
-        return {
-          'success': false,
-          'message': errorData['message'] ?? 'Failed to remove from cart',
-        };
+        throw Exception(errorData['message'] ?? 'Failed to remove cart item');
       }
     } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+      debugPrint('Error removing cart item: $e'); // Use debugPrint
+      throw Exception('Network error: ${e.toString()}');
     }
   }
 
-  // Clear entire cart
-  Future<Map<String, dynamic>> clearCart() async {
+  // FIX: Clear cart method signature for userId and token
+  Future<Map<String, dynamic>> clearCart(String userId, String token) async {
     try {
-      final token = await _authService.getToken();
       if (token == null) {
         return {'success': false, 'message': 'No authentication token found'};
       }
 
       final response = await http.delete(
-        Uri.parse('$_baseUrl/cart'),
+        Uri.parse('$_baseUrl/cart/clear'), // Assuming a specific clear endpoint
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
+        body: jsonEncode({'userId': userId}),
       );
 
       if (response.statusCode == 200) {
@@ -244,40 +178,35 @@ class CartService {
         };
       }
     } catch (e) {
+      debugPrint('Error clearing cart: $e'); // Use debugPrint
       return {'success': false, 'message': 'Network error: ${e.toString()}'};
     }
   }
 
-  // Get cart total
+  // FIX: Update getCartTotal to use Cart properties, fix double to int assignment
   Future<double> getCartTotal() async {
     try {
       final cartItems = await getCartItems();
       double total = 0.0;
 
       for (var item in cartItems) {
-        total += (item.price * item.quantity);
+        total += item.totalPrice; // Use totalPrice from Cart model
       }
 
       return total;
     } catch (e) {
-      print('Error calculating cart total: $e');
+      debugPrint('Error calculating cart total: $e'); // Use debugPrint
       return 0.0;
     }
   }
 
-  // Get cart item count
+  // Get cart item count (No change needed here based on previous error log)
   Future<int> getCartItemCount() async {
     try {
       final cartItems = await getCartItems();
-      int count = 0;
-
-      for (var item in cartItems) {
-        count += item.quantity;
-      }
-
-      return count;
+      return cartItems.fold(0, (sum, item) => sum + item.quantity);
     } catch (e) {
-      print('Error calculating cart item count: $e');
+      debugPrint('Error getting cart item count: $e');
       return 0;
     }
   }

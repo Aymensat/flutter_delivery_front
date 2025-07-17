@@ -241,6 +241,13 @@ class ApiService {
     return response['data'] ?? response;
   }
 
+  Future<List<Food>> getFoodsByRestaurantId(String restaurantId) async {
+    final response = await get('/foods?restaurant=$restaurantId');
+    return (response['data'] as List)
+        .map((foodJson) => Food.fromJson(foodJson))
+        .toList();
+  }
+
   // Payment methods
   Future<Map<String, dynamic>> createPayment(
     Map<String, dynamic> paymentData,

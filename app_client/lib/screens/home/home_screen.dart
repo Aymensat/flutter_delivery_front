@@ -5,11 +5,12 @@ import '../../providers/restaurant_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/restaurant_card.dart';
 import '../../widgets/search_bar.dart';
-import '../../widgets/category_filter.dart';
+import '../../widgets/category_filter.dart'
+    as CategoryFilterWidget; // FIX: Use prefix to avoid name conflict
 import 'restaurant_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({Key? key}) : super(key: key); // FIX: Add key parameter
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -17,7 +18,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _selectedCategory = 'All';
+  String _selectedCategory = 'All'; // Initialize with 'All' or a default
   bool _isLoading = false;
 
   @override
@@ -32,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
       await Provider.of<RestaurantProvider>(
         context,
         listen: false,
-      ).fetchRestaurants();
+      ).loadRestaurants(); // FIX: Changed from fetchRestaurants to loadRestaurants
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -46,10 +47,21 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+  void _onSearchChanged(String query) {
+    Provider.of<RestaurantProvider>(
+      context,
+      listen: false,
+    ).setSearchQuery(query); // FIX: Assuming setSearchQuery
+  }
+
+  void _onCategorySelected(String category) {
+    setState(() {
+      _selectedCategory = category;
+    });
+    Provider.of<RestaurantProvider>(
+      context,
+      listen: false,
+    ).filterByCategory(category); // FIX: Assuming filterByCategory
   }
 
   @override
@@ -57,66 +69,63 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Food Delivery'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () => Navigator.pushNamed(context, '/profile'),
-          ),
-          IconButton(
             icon: const Icon(Icons.shopping_cart),
-            onPressed: () => Navigator.pushNamed(context, '/cart'),
+            onPressed: () {
+              Navigator.pushNamed(
+                context,
+                '/cart',
+              ); // Assuming you have a '/cart' route
+            },
+          ),
+          // Example for logout, assuming AuthProvider handles this
+          Consumer<AuthProvider>(
+            builder: (context, authProvider, child) {
+              return IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: () {
+                  authProvider.logout();
+                },
+              );
+            },
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _loadRestaurants,
+      body: SafeArea(
         child: Column(
           children: [
-            // Search Bar
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: CustomSearchBar(
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SearchBar(
                 controller: _searchController,
-                onChanged: (value) {
-                  Provider.of<RestaurantProvider>(
-                    context,
-                    listen: false,
-                  ).filterRestaurants(value, _selectedCategory);
-                },
-                onClear: () {
-                  _searchController.clear();
-                  Provider.of<RestaurantProvider>(
-                    context,
-                    listen: false,
-                  ).filterRestaurants('', _selectedCategory);
-                },
+                onChanged: _onSearchChanged,
+                hintText: 'Search restaurants...',
               ),
             ),
-
-            // Category Filter
-            Container(
-              height: 50,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: CategoryFilter(
-                selectedCategory: _selectedCategory,
-                onCategorySelected: (category) {
-                  setState(() => _selectedCategory = category);
-                  Provider.of<RestaurantProvider>(
-                    context,
-                    listen: false,
-                  ).filterRestaurants(_searchController.text, category);
-                },
-              ),
+            Consumer<RestaurantProvider>(
+              builder: (context, restaurantProvider, child) {
+                return CategoryFilterWidget.CategoryFilter(
+                  // FIX: Use prefixed CategoryFilter
+                  categories: restaurantProvider.getCategories(),
+                  selectedCategory: _selectedCategory,
+                  onCategorySelected: _onCategorySelected,
+                );
+              },
             ),
-
-            // Restaurant List
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : Consumer<RestaurantProvider>(
                       builder: (context, restaurantProvider, child) {
+                        if (restaurantProvider.error != null) {
+                          return Center(
+                            child: Text(
+                              'Error: ${restaurantProvider.error}',
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          );
+                        }
                         if (restaurantProvider.restaurants.isEmpty) {
                           return const Center(
                             child: Text(

@@ -43,6 +43,22 @@ class RestaurantProvider with ChangeNotifier {
     }
   }
 
+  Future<List<Food>> fetchFoodsForRestaurant(String restaurantId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      _foods = await _apiService.getFoodsByRestaurantId(restaurantId);
+      return _foods;
+    } catch (e) {
+      _error = e.toString();
+      rethrow; // Re-throw to be caught by the UI
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   // Load restaurant by ID
   Future<void> loadRestaurantById(String id) async {
     _isLoading = true;
