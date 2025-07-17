@@ -1,0 +1,180 @@
+Date : 2025-07-16 21:49:41
+Directory : c:\Users\Asus\Desktop\project_stage
+Total : 91 files,  6702 codes, 392 comments, 869 blanks, all 7963 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| Dart       |         39 |      4,824 |        155 |        515 |      5,494 |
+| C++        |         16 |        553 |        131 |        189 |        873 |
+| XML        |         10 |        470 |         53 |         12 |        535 |
+| CMake      |          8 |        465 |          0 |         92 |        557 |
+| JSON       |          4 |        248 |          0 |          4 |        252 |
+| Swift      |          6 |         67 |          7 |         21 |         95 |
+| YAML       |          3 |         35 |         31 |         20 |         86 |
+| HTML       |          1 |         19 |         15 |          5 |         39 |
+| Markdown   |          2 |         13 |          0 |          9 |         22 |
+| Properties |          2 |          8 |          0 |          2 |         10 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++--------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                         | files      | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                            |         91 |      6,702 |        392 |        869 |      7,963 |
+| app_client                                                                                                   |         91 |      6,702 |        392 |        869 |      7,963 |
+| app_client (Files)                                                                                           |          4 |         45 |         31 |         27 |        103 |
+| app_client\android                                                                                           |          9 |         74 |         51 |         11 |        136 |
+| app_client\android (Files)                                                                                   |          1 |          3 |          0 |          1 |          4 |
+| app_client\android\app                                                                                       |          7 |         66 |         51 |          9 |        126 |
+| app_client\android\app\src                                                                                   |          7 |         66 |         51 |          9 |        126 |
+| app_client\android\app\src\debug                                                                             |          1 |          3 |          4 |          1 |          8 |
+| app_client\android\app\src\main                                                                              |          5 |         60 |         43 |          7 |        110 |
+| app_client\android\app\src\main (Files)                                                                      |          1 |         34 |         11 |          1 |         46 |
+| app_client\android\app\src\main\res                                                                          |          4 |         26 |         32 |          6 |         64 |
+| app_client\android\app\src\main\res\drawable                                                                 |          1 |          4 |          7 |          2 |         13 |
+| app_client\android\app\src\main\res\drawable-v21                                                             |          1 |          4 |          7 |          2 |         13 |
+| app_client\android\app\src\main\res\values                                                                   |          1 |          9 |          9 |          1 |         19 |
+| app_client\android\app\src\main\res\values-night                                                             |          1 |          9 |          9 |          1 |         19 |
+| app_client\android\app\src\profile                                                                           |          1 |          3 |          4 |          1 |          8 |
+| app_client\android\gradle                                                                                    |          1 |          5 |          0 |          1 |          6 |
+| app_client\android\gradle\wrapper                                                                            |          1 |          5 |          0 |          1 |          6 |
+| app_client\ios                                                                                               |          8 |        229 |          4 |         13 |        246 |
+| app_client\ios\Runner                                                                                        |          7 |        222 |          2 |          9 |        233 |
+| app_client\ios\Runner (Files)                                                                                |          2 |         13 |          0 |          3 |         16 |
+| app_client\ios\RunnerTests                                                                                   |          1 |          7 |          2 |          4 |         13 |
+| app_client\ios\Runner\Assets.xcassets                                                                        |          3 |        148 |          0 |          4 |        152 |
+| app_client\ios\Runner\Assets.xcassets\AppIcon.appiconset                                                     |          1 |        122 |          0 |          1 |        123 |
+| app_client\ios\Runner\Assets.xcassets\LaunchImage.imageset                                                   |          2 |         26 |          0 |          3 |         29 |
+| app_client\ios\Runner\Base.lproj                                                                             |          2 |         61 |          2 |          2 |         65 |
+| app_client\lib                                                                                               |         38 |      4,810 |        145 |        508 |      5,463 |
+| app_client\lib (Files)                                                                                       |          1 |         53 |          1 |          7 |         61 |
+| app_client\lib\config                                                                                        |          2 |         37 |          2 |          6 |         45 |
+| app_client\lib\models                                                                                        |          7 |      1,240 |         44 |        134 |      1,418 |
+| app_client\lib\providers                                                                                     |          4 |        483 |         26 |         84 |        593 |
+| app_client\lib\screens                                                                                       |         11 |      1,644 |         16 |        101 |      1,761 |
+| app_client\lib\screens\auth                                                                                  |          3 |        756 |          8 |         43 |        807 |
+| app_client\lib\screens\cart                                                                                  |          2 |        358 |          0 |         15 |        373 |
+| app_client\lib\screens\home                                                                                  |          3 |        530 |          8 |         37 |        575 |
+| app_client\lib\screens\orders                                                                                |          3 |          0 |          0 |          6 |          6 |
+| app_client\lib\services                                                                                      |          6 |        779 |         42 |        125 |        946 |
+| app_client\lib\settings                                                                                      |          2 |          0 |          0 |          4 |          4 |
+| app_client\lib\widgets                                                                                       |          5 |        574 |         14 |         47 |        635 |
+| app_client\linux                                                                                             |          9 |        330 |         37 |         92 |        459 |
+| app_client\linux (Files)                                                                                     |          1 |        104 |          0 |         25 |        129 |
+| app_client\linux\flutter                                                                                     |          4 |        110 |          9 |         27 |        146 |
+| app_client\linux\runner                                                                                      |          4 |        116 |         28 |         40 |        184 |
+| app_client\macos                                                                                             |          6 |        459 |          5 |         17 |        481 |
+| app_client\macos\Flutter                                                                                     |          1 |         18 |          3 |          4 |         25 |
+| app_client\macos\Runner                                                                                      |          4 |        434 |          0 |          9 |        443 |
+| app_client\macos\Runner (Files)                                                                              |          2 |         23 |          0 |          7 |         30 |
+| app_client\macos\RunnerTests                                                                                 |          1 |          7 |          2 |          4 |         13 |
+| app_client\macos\Runner\Assets.xcassets                                                                      |          1 |         68 |          0 |          1 |         69 |
+| app_client\macos\Runner\Assets.xcassets\AppIcon.appiconset                                                   |          1 |         68 |          0 |          1 |         69 |
+| app_client\macos\Runner\Base.lproj                                                                           |          1 |        343 |          0 |          1 |        344 |
+| app_client\test                                                                                              |          1 |         14 |         10 |          7 |         31 |
+| app_client\web                                                                                               |          2 |         54 |         15 |          6 |         75 |
+| app_client\windows                                                                                           |         14 |        687 |         94 |        188 |        969 |
+| app_client\windows (Files)                                                                                   |          1 |         89 |          0 |         20 |        109 |
+| app_client\windows\flutter                                                                                   |          4 |        136 |          9 |         29 |        174 |
+| app_client\windows\runner                                                                                    |          9 |        462 |         85 |        139 |        686 |
++--------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++--------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                                                     | language   | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| c:\Users\Asus\Desktop\project_stage\app_client\README.md                                                     | Markdown   |         10 |          0 |          7 |         17 |
+| c:\Users\Asus\Desktop\project_stage\app_client\analysis_options.yaml                                         | YAML       |          3 |         22 |          4 |         29 |
+| c:\Users\Asus\Desktop\project_stage\app_client\android\app\src\debug\AndroidManifest.xml                     | XML        |          3 |          4 |          1 |          8 |
+| c:\Users\Asus\Desktop\project_stage\app_client\android\app\src\main\AndroidManifest.xml                      | XML        |         34 |         11 |          1 |         46 |
+| c:\Users\Asus\Desktop\project_stage\app_client\android\app\src\main\res\drawable-v21\launch_background.xml   | XML        |          4 |          7 |          2 |         13 |
+| c:\Users\Asus\Desktop\project_stage\app_client\android\app\src\main\res\drawable\launch_background.xml       | XML        |          4 |          7 |          2 |         13 |
+| c:\Users\Asus\Desktop\project_stage\app_client\android\app\src\main\res\values-night\styles.xml              | XML        |          9 |          9 |          1 |         19 |
+| c:\Users\Asus\Desktop\project_stage\app_client\android\app\src\main\res\values\styles.xml                    | XML        |          9 |          9 |          1 |         19 |
+| c:\Users\Asus\Desktop\project_stage\app_client\android\app\src\profile\AndroidManifest.xml                   | XML        |          3 |          4 |          1 |          8 |
+| c:\Users\Asus\Desktop\project_stage\app_client\android\gradle.properties                                     | Properties |          3 |          0 |          1 |          4 |
+| c:\Users\Asus\Desktop\project_stage\app_client\android\gradle\wrapper\gradle-wrapper.properties              | Properties |          5 |          0 |          1 |          6 |
+| c:\Users\Asus\Desktop\project_stage\app_client\devtools_options.yaml                                         | YAML       |          3 |          0 |          1 |          4 |
+| c:\Users\Asus\Desktop\project_stage\app_client\ios\RunnerTests\RunnerTests.swift                             | Swift      |          7 |          2 |          4 |         13 |
+| c:\Users\Asus\Desktop\project_stage\app_client\ios\Runner\AppDelegate.swift                                  | Swift      |         12 |          0 |          2 |         14 |
+| c:\Users\Asus\Desktop\project_stage\app_client\ios\Runner\Assets.xcassets\AppIcon.appiconset\Contents.json   | JSON       |        122 |          0 |          1 |        123 |
+| c:\Users\Asus\Desktop\project_stage\app_client\ios\Runner\Assets.xcassets\LaunchImage.imageset\Contents.json | JSON       |         23 |          0 |          1 |         24 |
+| c:\Users\Asus\Desktop\project_stage\app_client\ios\Runner\Assets.xcassets\LaunchImage.imageset\README.md     | Markdown   |          3 |          0 |          2 |          5 |
+| c:\Users\Asus\Desktop\project_stage\app_client\ios\Runner\Base.lproj\LaunchScreen.storyboard                 | XML        |         36 |          1 |          1 |         38 |
+| c:\Users\Asus\Desktop\project_stage\app_client\ios\Runner\Base.lproj\Main.storyboard                         | XML        |         25 |          1 |          1 |         27 |
+| c:\Users\Asus\Desktop\project_stage\app_client\ios\Runner\Runner-Bridging-Header.h                           | C++        |          1 |          0 |          1 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\config\app_config.dart                                    | Dart       |         13 |          2 |          3 |         18 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\config\theme.dart                                         | Dart       |         24 |          0 |          3 |         27 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\main.dart                                                 | Dart       |         53 |          1 |          7 |         61 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\models\cart.dart                                          | Dart       |        151 |         11 |         26 |        188 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\models\feedback.dart                                      | Dart       |        192 |         14 |         29 |        235 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\models\food.dart                                          | Dart       |        178 |          3 |         19 |        200 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\models\order.dart                                         | Dart       |        269 |          2 |         15 |        286 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\models\payment.dart                                       | Dart       |        166 |          8 |         19 |        193 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\models\restaurant.dart                                    | Dart       |         66 |          0 |          6 |         72 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\models\user.dart                                          | Dart       |        218 |          6 |         20 |        244 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\providers\auth_provider.dart                              | Dart       |        268 |          6 |         44 |        318 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\providers\cart_provider.dart                              | Dart       |        109 |          7 |         20 |        136 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\providers\order_provider.dart                             | Dart       |          0 |          0 |          1 |          1 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\providers\restaurant_provider.dart                        | Dart       |        106 |         13 |         19 |        138 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\auth\login_screen.dart                            | Dart       |        326 |          5 |         19 |        350 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\auth\profile_screen.dart                          | Dart       |          0 |          0 |          2 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\auth\register_screen.dart                         | Dart       |        430 |          3 |         22 |        455 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\cart\cart_screen.dart                             | Dart       |        358 |          0 |         13 |        371 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\cart\checkout_screen.dart                         | Dart       |          0 |          0 |          2 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\home\food_detail_screen.dart                      | Dart       |          0 |          0 |          2 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\home\home_screen.dart                             | Dart       |        146 |          3 |         12 |        161 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\home\restaurant_detail_screen.dart                | Dart       |        384 |          5 |         23 |        412 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\orders\order_detail_screen.dart                   | Dart       |          0 |          0 |          2 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\orders\order_tracking_screen.dart                 | Dart       |          0 |          0 |          2 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\orders\orders_screen.dart                         | Dart       |          0 |          0 |          2 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\services\api_service.dart                                 | Dart       |        223 |         13 |         48 |        284 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\services\auth_service.dart                                | Dart       |        322 |         11 |         38 |        371 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\services\cart_service.dart                                | Dart       |        234 |         18 |         33 |        285 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\services\location_service.dart                            | Dart       |          0 |          0 |          2 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\services\notification_service.dart                        | Dart       |          0 |          0 |          2 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\services\order_service.dart                               | Dart       |          0 |          0 |          2 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\settings\feedback_screen.dart                             | Dart       |          0 |          0 |          2 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\settings\settings_screen.dart                             | Dart       |          0 |          0 |          2 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\widgets\category_filter.dart                              | Dart       |         51 |          0 |          6 |         57 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\widgets\food_card.dart                                    | Dart       |        101 |          4 |          9 |        114 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\widgets\rating_stars.dart                                 | Dart       |         31 |          0 |          4 |         35 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\widgets\restaurant_card.dart                              | Dart       |        335 |         10 |         21 |        366 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\widgets\search_bar.dart                                   | Dart       |         56 |          0 |          7 |         63 |
+| c:\Users\Asus\Desktop\project_stage\app_client\linux\CMakeLists.txt                                          | CMake      |        104 |          0 |         25 |        129 |
+| c:\Users\Asus\Desktop\project_stage\app_client\linux\flutter\CMakeLists.txt                                  | CMake      |         79 |          0 |         10 |         89 |
+| c:\Users\Asus\Desktop\project_stage\app_client\linux\flutter\generated_plugin_registrant.cc                  | C++        |          7 |          4 |          5 |         16 |
+| c:\Users\Asus\Desktop\project_stage\app_client\linux\flutter\generated_plugin_registrant.h                   | C++        |          5 |          5 |          6 |         16 |
+| c:\Users\Asus\Desktop\project_stage\app_client\linux\flutter\generated_plugins.cmake                         | CMake      |         19 |          0 |          6 |         25 |
+| c:\Users\Asus\Desktop\project_stage\app_client\linux\runner\CMakeLists.txt                                   | CMake      |         21 |          0 |          6 |         27 |
+| c:\Users\Asus\Desktop\project_stage\app_client\linux\runner\main.cc                                          | C++        |          5 |          0 |          2 |          7 |
+| c:\Users\Asus\Desktop\project_stage\app_client\linux\runner\my_application.cc                                | C++        |         83 |         21 |         27 |        131 |
+| c:\Users\Asus\Desktop\project_stage\app_client\linux\runner\my_application.h                                 | C++        |          7 |          7 |          5 |         19 |
+| c:\Users\Asus\Desktop\project_stage\app_client\macos\Flutter\GeneratedPluginRegistrant.swift                 | Swift      |         18 |          3 |          4 |         25 |
+| c:\Users\Asus\Desktop\project_stage\app_client\macos\RunnerTests\RunnerTests.swift                           | Swift      |          7 |          2 |          4 |         13 |
+| c:\Users\Asus\Desktop\project_stage\app_client\macos\Runner\AppDelegate.swift                                | Swift      |         11 |          0 |          3 |         14 |
+| c:\Users\Asus\Desktop\project_stage\app_client\macos\Runner\Assets.xcassets\AppIcon.appiconset\Contents.json | JSON       |         68 |          0 |          1 |         69 |
+| c:\Users\Asus\Desktop\project_stage\app_client\macos\Runner\Base.lproj\MainMenu.xib                          | XML        |        343 |          0 |          1 |        344 |
+| c:\Users\Asus\Desktop\project_stage\app_client\macos\Runner\MainFlutterWindow.swift                          | Swift      |         12 |          0 |          4 |         16 |
+| c:\Users\Asus\Desktop\project_stage\app_client\pubspec.yaml                                                  | YAML       |         29 |          9 |         15 |         53 |
+| c:\Users\Asus\Desktop\project_stage\app_client\test\widget_test.dart                                         | Dart       |         14 |         10 |          7 |         31 |
+| c:\Users\Asus\Desktop\project_stage\app_client\web\index.html                                                | HTML       |         19 |         15 |          5 |         39 |
+| c:\Users\Asus\Desktop\project_stage\app_client\web\manifest.json                                             | JSON       |         35 |          0 |          1 |         36 |
+| c:\Users\Asus\Desktop\project_stage\app_client\windows\CMakeLists.txt                                        | CMake      |         89 |          0 |         20 |        109 |
+| c:\Users\Asus\Desktop\project_stage\app_client\windows\flutter\CMakeLists.txt                                | CMake      |         98 |          0 |         12 |        110 |
+| c:\Users\Asus\Desktop\project_stage\app_client\windows\flutter\generated_plugin_registrant.cc                | C++        |         12 |          4 |          5 |         21 |
+| c:\Users\Asus\Desktop\project_stage\app_client\windows\flutter\generated_plugin_registrant.h                 | C++        |          5 |          5 |          6 |         16 |
+| c:\Users\Asus\Desktop\project_stage\app_client\windows\flutter\generated_plugins.cmake                       | CMake      |         21 |          0 |          6 |         27 |
+| c:\Users\Asus\Desktop\project_stage\app_client\windows\runner\CMakeLists.txt                                 | CMake      |         34 |          0 |          7 |         41 |
+| c:\Users\Asus\Desktop\project_stage\app_client\windows\runner\flutter_window.cpp                             | C++        |         49 |          7 |         16 |         72 |
+| c:\Users\Asus\Desktop\project_stage\app_client\windows\runner\flutter_window.h                               | C++        |         20 |          5 |          9 |         34 |
+| c:\Users\Asus\Desktop\project_stage\app_client\windows\runner\main.cpp                                       | C++        |         30 |          4 |         10 |         44 |
+| c:\Users\Asus\Desktop\project_stage\app_client\windows\runner\resource.h                                     | C++        |          9 |          6 |          2 |         17 |
+| c:\Users\Asus\Desktop\project_stage\app_client\windows\runner\utils.cpp                                      | C++        |         54 |          2 |         10 |         66 |
+| c:\Users\Asus\Desktop\project_stage\app_client\windows\runner\utils.h                                        | C++        |          8 |          6 |          6 |         20 |
+| c:\Users\Asus\Desktop\project_stage\app_client\windows\runner\win32_window.cpp                               | C++        |        210 |         24 |         55 |        289 |
+| c:\Users\Asus\Desktop\project_stage\app_client\windows\runner\win32_window.h                                 | C++        |         48 |         31 |         24 |        103 |
+| Total                                                                                                        |            |      6,702 |        392 |        869 |      7,963 |
++--------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+

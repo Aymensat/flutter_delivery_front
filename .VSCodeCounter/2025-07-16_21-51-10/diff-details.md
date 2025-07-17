@@ -1,10 +1,10 @@
 # Diff Details
 
-Date : 2025-07-14 19:59:11
+Date : 2025-07-16 21:51:10
 
 Directory c:\\Users\\Asus\\Desktop\\project_stage\\app_client\\lib
 
-Total : 52 files,  -1889 codes, -247 comments, -360 blanks, all -2496 lines
+Total : 53 files,  -1892 codes, -247 comments, -361 blanks, all -2500 lines
 
 [Summary](results.md) / [Details](details.md) / [Diff Summary](diff.md) / Diff Details
 
@@ -22,6 +22,7 @@ Total : 52 files,  -1889 codes, -247 comments, -360 blanks, all -2496 lines
 | [app\_client/android/app/src/profile/AndroidManifest.xml](/app_client/android/app/src/profile/AndroidManifest.xml) | XML | -3 | -4 | -1 | -8 |
 | [app\_client/android/gradle.properties](/app_client/android/gradle.properties) | Properties | -3 | 0 | -1 | -4 |
 | [app\_client/android/gradle/wrapper/gradle-wrapper.properties](/app_client/android/gradle/wrapper/gradle-wrapper.properties) | Properties | -5 | 0 | -1 | -6 |
+| [app\_client/devtools\_options.yaml](/app_client/devtools_options.yaml) | YAML | -3 | 0 | -1 | -4 |
 | [app\_client/ios/RunnerTests/RunnerTests.swift](/app_client/ios/RunnerTests/RunnerTests.swift) | Swift | -7 | -2 | -4 | -13 |
 | [app\_client/ios/Runner/AppDelegate.swift](/app_client/ios/Runner/AppDelegate.swift) | Swift | -12 | 0 | -2 | -14 |
 | [app\_client/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json](/app_client/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json) | JSON | -122 | 0 | -1 | -123 |

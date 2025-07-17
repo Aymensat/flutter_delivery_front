@@ -1,10 +1,10 @@
 # Diff Summary
 
-Date : 2025-07-14 19:59:11
+Date : 2025-07-16 21:51:10
 
 Directory c:\\Users\\Asus\\Desktop\\project_stage\\app_client\\lib
 
-Total : 52 files,  -1889 codes, -247 comments, -360 blanks, all -2496 lines
+Total : 53 files,  -1892 codes, -247 comments, -361 blanks, all -2500 lines
 
 [Summary](results.md) / [Details](details.md) / Diff Summary / [Diff Details](diff-details.md)
 
@@ -15,7 +15,7 @@ Total : 52 files,  -1889 codes, -247 comments, -360 blanks, all -2496 lines
 | Markdown | 2 | -13 | 0 | -9 | -22 |
 | Dart | 1 | -14 | -10 | -7 | -31 |
 | HTML | 1 | -19 | -15 | -5 | -39 |
-| YAML | 2 | -32 | -31 | -19 | -82 |
+| YAML | 3 | -35 | -31 | -20 | -86 |
 | Swift | 6 | -67 | -7 | -21 | -95 |
 | JSON | 4 | -248 | 0 | -4 | -252 |
 | CMake | 8 | -465 | 0 | -92 | -557 |
@@ -25,9 +25,9 @@ Total : 52 files,  -1889 codes, -247 comments, -360 blanks, all -2496 lines
 ## Directories
 | path | files | code | comment | blank | total |
 | :--- | ---: | ---: | ---: | ---: | ---: |
-| . | 52 | -1,889 | -247 | -360 | -2,496 |
-| .. | 52 | -1,889 | -247 | -360 | -2,496 |
-| .. (Files) | 3 | -42 | -31 | -26 | -99 |
+| . | 53 | -1,892 | -247 | -361 | -2,500 |
+| .. | 53 | -1,892 | -247 | -361 | -2,500 |
+| .. (Files) | 4 | -45 | -31 | -27 | -103 |
 | ..\\android | 9 | -74 | -51 | -11 | -136 |
 | ..\\android (Files) | 1 | -3 | 0 | -1 | -4 |
 | ..\\android\\app | 7 | -66 | -51 | -9 | -126 |
