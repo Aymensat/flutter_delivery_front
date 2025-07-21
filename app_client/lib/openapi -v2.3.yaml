@@ -1,0 +1,1169 @@
+openapi: 3.0.3
+info:
+  title: Unified Food Delivery API - Refined
+  description: |
+    Fully detailed and corrected OpenAPI 3.0 specification for the Unified Food Delivery backend.
+    Includes authentication, users, cart, chat, deliveries, geocoding, file uploads,
+    analytics, restaurants, foods, orders, payments, feedback, notifications,
+    settings, health-check, route optimization, rate limiting, alias routes,
+    and WebSocket event summary.
+  version: "1.0.1"
+servers:
+  - url: /api
+    description: Primary API server
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UserPublicProfile:
+      type: object
+      properties:
+        _id: { type: string, format: objectId }
+        username: { type: string }
+        firstName: { type: string }
+        name: { type: string }
+        email: { type: string, format: email }
+        image: { type: string, nullable: true }
+        verified: { type: boolean }
+        phone: { type: string, description: Tunisian phone regex }
+        location:
+          type: object
+          properties:
+            latitude: { type: number }
+            longitude: { type: number }
+        role:
+          type: string
+          enum: [client, livreur, admin]
+        vehiculetype: { type: string, nullable: true }
+        vehicleDocuments:
+          type: array
+          items: { type: string }
+        status: { type: string, enum: [available, unavailable] }
+        isOnline: { type: boolean }
+        lastActive: { type: string, format: date-time }
+        ratings:
+          type: array
+          items:
+            type: object
+            properties:
+              clientId: { type: string, format: objectId }
+              rating: { type: integer }
+        vehicle:
+          type: object
+          additionalProperties: true
+        livreurStats:
+          type: object
+          properties:
+            deliveriesCompleted: { type: integer }
+            deliveriesThisMonth: { type: integer }
+            averageTime: { type: string }
+            monthlyEarnings: { type: string }
+            successRate: { type: string }
+            rating: { type: number }
+
+    User:
+      type: object
+      properties:
+        _id: { type: string, format: objectId }
+        username: { type: string }
+        firstName: { type: string }
+        name: { type: string }
+        email: { type: string, format: email }
+        image: { type: string, nullable: true }
+        verified: { type: boolean }
+        phone: { type: string, description: Tunisian phone regex }
+        location:
+          type: object
+          properties:
+            latitude: { type: number }
+            longitude: { type: number }
+        role:
+          type: string
+          enum: [client, livreur, admin]
+        vehiculetype: { type: string, nullable: true }
+        vehicleDocuments:
+          type: array
+          items: { type: string }
+        status: { type: string, enum: [available, unavailable] }
+        isOnline: { type: boolean }
+        lastActive: { type: string, format: date-time }
+        ratings:
+          type: array
+          items:
+            type: object
+            properties:
+              clientId: { type: string, format: objectId }
+              rating: { type: integer }
+        vehicle:
+          type: object
+          additionalProperties: true
+        livreurStats:
+          type: object
+          properties:
+            deliveriesCompleted: { type: integer }
+            deliveriesThisMonth: { type: integer }
+            averageTime: { type: string }
+            monthlyEarnings: { type: string }
+            successRate: { type: string }
+            rating: { type: number }
+      required: [username, firstName, name, email, phone]
+
+    Cart:
+      type: object
+      properties:
+        _id: { type: string, format: objectId }
+        user: { $ref: "#/components/schemas/UserPublicProfile" }
+        food: { $ref: "#/components/schemas/Food" }
+        quantity: { type: integer, minimum: 1 }
+      required: [user, food, quantity]
+
+    ChatConversation:
+      type: object
+      properties:
+        _id: { type: string, format: objectId }
+        participants:
+          type: array
+          items: { $ref: "#/components/schemas/UserPublicProfile" }
+        lastMessage: { type: string, format: objectId }
+        lastMessageTimestamp: { type: string, format: date-time }
+        unreadCount: { type: integer }
+
+    ChatMessage:
+      type: object
+      properties:
+        _id: { type: string, format: objectId }
+        sender: { $ref: "#/components/schemas/UserPublicProfile" }
+        receiver: { $ref: "#/components/schemas/UserPublicProfile" }
+        message: { type: string }
+        imageUrl: { type: string }
+        isRead: { type: boolean }
+        createdAt: { type: string, format: date-time }
+      required: [sender, receiver]
+
+    Delivery:
+      type: object
+      properties:
+        _id: { type: string, format: objectId }
+        order: { type: string, format: objectId, nullable: true }
+        driver: { $ref: "#/components/schemas/UserPublicProfile" }
+        client: { $ref: "#/components/schemas/UserPublicProfile" }
+        status:
+          type: string
+          enum: [pending, picked_up, delivering, delivered, cancelled]
+        currentLocation:
+          type: object
+          properties:
+            latitude: { type: number, nullable: true }
+            longitude: { type: number, nullable: true }
+            address: { type: string }
+            updatedAt: { type: string, format: date-time }
+        locationHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              latitude: { type: number }
+              longitude: { type: number }
+              timestamp: { type: string, format: date-time }
+        deliveredAt: { type: string, format: date-time }
+        maintenanceHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              date: { type: string, format: date-time }
+              type: { type: string }
+              cost: { type: string }
+              mileage: { type: string }
+        restaurantName: { type: string }
+        restaurantLatitude: { type: number }
+        restaurantLongitude: { type: number }
+        rating: { type: number, minimum: 1, maximum: 5 }
+      required: [driver]
+
+    Feedback:
+      type: object
+      properties:
+        _id: { type: string, format: objectId }
+        order: { type: string, format: objectId }
+        user: { $ref: "#/components/schemas/UserPublicProfile" }
+        delivery: { type: string, format: objectId, nullable: true }
+        restaurant: { type: string, format: objectId, nullable: true }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string }
+        type:
+          type: string
+          enum: [restaurant, delivery, food]
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [order, user, rating]
+
+    Food:
+      type: object
+      properties:
+        _id: { type: string, format: objectId }
+        name: { type: string }
+        description: { type: string }
+        category: { type: string }
+        calories: { type: number }
+        ingredients:
+          type: array
+          items: { type: string }
+        price: { type: number }
+        restaurant: { type: string, format: objectId }
+        restaurantDetails:
+          type: object
+          properties:
+            name: { type: string }
+            address: { type: string }
+            contact: { type: string }
+        imageUrl: { type: string }
+        isAvailable: { type: boolean }
+        ratings:
+          type: array
+          items:
+            type: object
+            properties:
+              clientId: { type: string, format: objectId }
+              rating: { type: number }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [name, category, price, restaurant, restaurantDetails]
+
+    Restaurant:
+      type: object
+      properties:
+        _id: { type: string, format: objectId }
+        name: { type: string }
+        images:
+          type: array
+          items: { type: string }
+        description: { type: string }
+        address: { type: string }
+        contact: { type: string }
+        workingHours: { type: string }
+        cuisine: { type: string }
+        latitude: { type: number }
+        longitude: { type: number }
+        rating: { type: number }
+        ratings:
+          type: array
+          items:
+            type: object
+            properties:
+              clientId: { type: string, format: objectId }
+              rating: { type: number }
+        imageUrl: { type: string }
+        openingHours:
+          type: object
+          properties:
+            open: { type: string }
+            close: { type: string }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [name, description, address, contact, workingHours, cuisine]
+
+    Payment:
+      type: object
+      properties:
+        _id: { type: string, format: objectId }
+        user: { $ref: "#/components/schemas/UserPublicProfile" }
+        order: { type: string, format: objectId }
+        cardName: { type: string }
+        cardNumber: { type: string }
+        expiry: { type: string }
+        cvc: { type: string }
+        amount: { type: number }
+        status:
+          type: string
+          enum: [pending, paid, failed]
+        saveCard: { type: boolean }
+        isDefault: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        maskedCardNumber:
+          type: string
+          description: Virtual masked card number
+      required: [user, order, cardName, cardNumber, expiry, cvc, amount]
+
+    Settings:
+      type: object
+      properties:
+        _id: { type: string, format: objectId }
+        user: { $ref: "#/components/schemas/UserPublicProfile" }
+        notifications:
+          type: object
+          properties:
+            emailNotifications: { type: boolean }
+            pushNotifications: { type: boolean }
+            orderUpdates: { type: boolean }
+            marketingEmails: { type: boolean }
+            systemAlerts: { type: boolean }
+        security:
+          type: object
+          properties:
+            twoFactorAuth: { type: boolean }
+            loginAlerts: { type: boolean }
+            dataEncryption: { type: boolean }
+        appearance:
+          type: object
+          properties:
+            darkMode: { type: boolean }
+            compactView: { type: boolean }
+            highContrast: { type: boolean }
+        system:
+          type: object
+          properties:
+            autoBackup: { type: boolean }
+            dataRetention: { type: string }
+            errorReporting: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [user]
+
+paths:
+  # Authentication and Users
+  /users/register:
+    post:
+      tags: [Users]
+      summary: Register new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/User" }
+      responses:
+        "201":
+          description: Created
+        "400": { description: Bad Request }
+  /users/login:
+    post:
+      tags: [Users]
+      summary: Login and receive JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        "200": { description: OK }
+        "401": { description: Unauthorized }
+  /users/register/image:
+    post:
+      tags: [Users]
+      summary: Upload user registration image
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image: { type: string, format: binary }
+      responses:
+        "201": { description: Created }
+        "400": { description: Bad Request }
+  /users/register/documents:
+    post:
+      tags: [Users]
+      summary: Upload user registration documents
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                document: { type: string, format: binary }
+      responses:
+        "201": { description: Created }
+        "400": { description: Bad Request }
+  /users/me:
+    get:
+      tags: [Users]
+      security: [{ BearerAuth: [] }]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserPublicProfile" }
+        "401": { description: Unauthorized }
+  /users:
+    get:
+      tags: [Users]
+      security: [{ BearerAuth: [] }]
+      summary: Get users for chat based on role
+      description: Returns a list of admins for livreurs, and a list of livreurs for admins.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id: { type: string }
+                    name: { type: string }
+                    role: { type: string }
+                    avatar: { type: string }
+        "403": { description: Forbidden }
+  /users/{id}:
+    put:
+      tags: [Users]
+      security: [{ BearerAuth: [] }]
+      summary: Update user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/User" }
+      responses:
+        "200": { description: Updated }
+        "400": { description: Bad Request }
+  /users/status:
+    put:
+      tags: [Users]
+      summary: Update user online status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId: { type: string }
+                isOnline: { type: boolean }
+      responses:
+        "200": { description: OK }
+  /users/change-password:
+    post:
+      tags: [Users]
+      security: [{ BearerAuth: [] }]
+      summary: Change user password
+      responses:
+        "200": { description: OK }
+  /users/chat-users:
+    get:
+      tags: [Users]
+      security: [{ BearerAuth: [] }]
+      summary: Get chat users
+      responses:
+        "200": { description: OK }
+
+  # Cart
+  /cart:
+    get:
+      tags: [Cart]
+      security: [{ BearerAuth: [] }]
+      summary: Get cart items
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      responses: { "200": { description: OK } }
+    post:
+      tags: [Cart]
+      security: [{ BearerAuth: [] }]
+      summary: Add/increment food in cart
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                food: { type: string }
+                quantity: { type: integer }
+      responses:
+        { "201": { description: Created }, "400": { description: Bad Request } }
+  /cart/{id}:
+    delete:
+      tags: [Cart]
+      security: [{ BearerAuth: [] }]
+      summary: Remove item by ID
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      parameters:
+        [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Deleted } }
+
+  # Chat
+  /chat/history/{senderId}/{receiverId}:
+    get:
+      tags: [Chat]
+      security: [{ BearerAuth: [] }]
+      summary: Get messages
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      parameters:
+        - name: senderId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: receiverId
+          in: path
+          required: true
+          schema: { type: string }
+      responses: { "200": { description: OK } }
+  /chat/conversations/{userId}:
+    get:
+      tags: [Chat]
+      security: [{ BearerAuth: [] }]
+      summary: List conversations
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      parameters:
+        [{ name: userId, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: OK } }
+  /chat/message:
+    post:
+      tags: [Chat]
+      security: [{ BearerAuth: [] }]
+      summary: Send message
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                receiver: { type: string }
+                message: { type: string }
+                imageUrl: { type: string }
+      responses: { "201": { description: Created } }
+
+  # Deliveries
+  /delivery:
+    get:
+      tags: [Deliveries]
+      security: [{ BearerAuth: [] }]
+      summary: List deliveries
+      responses: { "200": { description: OK } }
+  /delivery/stats:
+    get:
+      tags: [Deliveries]
+      summary: Delivery stats
+      parameters:
+        [{ name: userId, in: query, required: true, schema: { type: string } }]
+      responses: { "200": { description: OK } }
+  /delivery/mock-delivery-orders:
+    get:
+      tags: [Deliveries]
+      summary: Mock delivery orders
+      responses: { "200": { description: OK } }
+  /delivery/by-status:
+    get:
+      tags: [Deliveries]
+      security: [{ BearerAuth: [] }]
+      summary: Get deliveries by status
+      responses: { "200": { description: OK } }
+  /delivery/list:
+    get:
+      tags: [Deliveries]
+      security: [{ BearerAuth: [] }]
+      summary: Get deliveries by status (alias)
+      responses: { "200": { description: OK } }
+  /delivery/collected:
+    get:
+      tags: [Deliveries]
+      security: [{ BearerAuth: [] }]
+      summary: Get collected delivery payments
+      responses: { "200": { description: OK } }
+  /delivery/payments:
+    get:
+      tags: [Deliveries]
+      security: [{ BearerAuth: [] }]
+      summary: Get collected delivery payments (alias)
+      responses: { "200": { description: OK } }
+  /delivery/earnings:
+    get:
+      tags: [Deliveries]
+      security: [{ BearerAuth: [] }]
+      summary: Get delivery earnings
+      responses: { "200": { description: OK } }
+  /delivery/livreur/{livreurId}:
+    get:
+      tags: [Deliveries]
+      security: [{ BearerAuth: [] }]
+      summary: Get deliveries by livreur ID
+      parameters:
+        - name: livreurId
+          in: path
+          required: true
+          schema: { type: string }
+      responses: { "200": { description: OK } }
+  /delivery/location/{livreurId}:
+    patch:
+      tags: [Deliveries]
+      security: [{ BearerAuth: [] }]
+      summary: Update delivery location
+      parameters:
+        - name: livreurId
+          in: path
+          required: true
+          schema: { type: string }
+      responses: { "200": { description: OK } }
+  /delivery/counts:
+    get:
+      tags: [Deliveries]
+      summary: Get delivery counts
+      responses: { "200": { description: OK } }
+
+  # Geocode
+  /geocode/reverse:
+    get:
+      tags: [Geocoding]
+      summary: Reverse geocode
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          schema: { type: number }
+        - name: lon
+          in: query
+          required: true
+          schema: { type: number }
+      responses: { "200": { description: OK } }
+  /geocode/search:
+    get:
+      tags: [Geocoding]
+      summary: Forward geocode
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      parameters:
+        [{ name: q, in: query, required: true, schema: { type: string } }]
+      responses: { "200": { description: OK } }
+  /geocode/embed:
+    get:
+      tags: [Geocoding]
+      summary: Embed map
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      parameters:
+        - name: bbox
+          in: query
+          schema: { type: string }
+        - name: marker
+          in: query
+          schema: { type: string }
+        - name: zoom
+          in: query
+          schema: { type: integer, default:15 }
+      responses: { "200": { description: OK } }
+  /geocode/route:
+    get:
+      tags: [Geocoding]
+      summary: Route directions
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema: { type: string }
+        - name: to
+          in: query
+          required: true
+          schema: { type: string }
+        - name: mode
+          in: query
+          schema: { type: string, default:car }
+      responses: { "200": { description: OK } }
+  /geocode/restaurant-locations:
+    get:
+      tags: [Geocoding]
+      summary: Nearby restaurants
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: lat
+          in: query
+          schema: { type: number }
+        - name: lon
+          in: query
+          schema: { type: number }
+        - name: radius
+          in: query
+          schema: { type: number }
+      responses: { "200": { description: OK } }
+
+  # File Upload
+  /upload:
+    post:
+      tags: [Uploads]
+      security: [{ BearerAuth: [] }]
+      summary: Upload image file
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image: { type: string, format: binary }
+                type: { type: string, enum: [chat, food, restaurant, general] }
+      responses:
+        "201": { description: Uploaded }
+        "400": { description: Invalid file }
+
+  # Restaurants
+  /restaurants:
+    get:
+      tags: [Restaurants]
+      summary: List restaurants
+      parameters:
+        - name: lat
+          in: query
+          schema: { type: number }
+        - name: lon
+          in: query
+          schema: { type: number }
+      responses: { "200": { description: OK } }
+    post:
+      tags: [Restaurants]
+      security: [{ BearerAuth: [] }]
+      summary: Create restaurant
+      description: "**Note:** Requires Admin role."
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/Restaurant"
+                - type: object
+                  properties:
+                    image: { type: string, format: binary }
+      responses: { "201": { description: Created } }
+  /restaurants/{id}:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Restaurants]
+      summary: Get restaurant by ID
+      responses: { "200": { description: OK } }
+    put:
+      tags: [Restaurants]
+      security: [{ BearerAuth: [] }]
+      summary: Update restaurant
+      description: "**Note:** Requires Admin role."
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/Restaurant"
+                - type: object
+                  properties:
+                    image: { type: string, format: binary }
+      responses: { "200": { description: Updated } }
+    delete:
+      tags: [Restaurants]
+      security: [{ BearerAuth: [] }]
+      summary: Delete restaurant
+      description: "**Note:** Requires Admin role."
+      responses: { "204": { description: Deleted } }
+  /restaurants/{id}/rate:
+    post:
+      tags: [Restaurants]
+      security: [{ BearerAuth: [] }]
+      summary: Rate a restaurant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses: { "200": { description: OK } }
+
+  # Foods
+  /food:
+    get:
+      tags: [Foods]
+      summary: List foods
+      responses: { "200": { description: OK } }
+    post:
+      tags: [Foods]
+      security: [{ BearerAuth: [] }]
+      summary: Add food
+      description: "**Note:** Requires Admin role."
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/Food"
+                - type: object
+                  properties:
+                    image: { type: string, format: binary }
+      responses: { "201": { description: Created } }
+  /food/{id}:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Foods]
+      summary: Get food by ID
+      responses: { "200": { description: OK } }
+    put:
+      tags: [Foods]
+      security: [{ BearerAuth: [] }]
+      summary: Update food
+      description: "**Note:** Requires Admin role."
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/Food"
+                - type: object
+                  properties:
+                    image: { type: string, format: binary }
+      responses: { "200": { description: Updated } }
+    delete:
+      tags: [Foods]
+      security: [{ BearerAuth: [] }]
+      summary: Delete food
+      description: "**Note:** Requires Admin role."
+      responses: { "204": { description: Deleted } }
+  /food/{id}/rate:
+    post:
+      tags: [Foods]
+      security: [{ BearerAuth: [] }]
+      summary: Rate a food item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses: { "200": { description: OK } }
+  /food/upload-image/{id}:
+    post:
+      tags: [Foods]
+      security: [{ BearerAuth: [] }]
+      summary: Upload image for a food item
+      description: "**Note:** Requires Admin role."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image: { type: string, format: binary }
+      responses: { "201": { description: Created } }
+
+  # Orders
+  /orders:
+    get:
+      tags: [Orders]
+      security: [{ BearerAuth: [] }]
+      summary: List orders
+      responses: { "200": { description: OK } }
+    post:
+      tags: [Orders]
+      security: [{ BearerAuth: [] }]
+      summary: Create order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Order" }
+      responses: { "201": { description: Created } }
+  /orders/add:
+    post:
+      tags: [Orders]
+      security: [{ BearerAuth: [] }]
+      summary: Create order (alias)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Order" }
+      responses: { "201": { description: Created } }
+  /orders/{id}:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Orders]
+      security: [{ BearerAuth: [] }]
+      summary: Get order by ID
+      responses: { "200": { description: OK } }
+  /orders/update/{id}:
+    put:
+      tags: [Orders]
+      security: [{ BearerAuth: [] }]
+      summary: Update order
+      parameters:
+        [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Order" }
+      responses: { "200": { description: Updated } }
+  /orders/{id}/status:
+    patch:
+      tags: [Orders]
+      security: [{ BearerAuth: [] }]
+      summary: Change order status
+      parameters:
+        [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string }
+                livreur: { type: string, format: objectId, nullable: true }
+      responses: { "200": { description: Status updated } }
+  /orders/{id}/assign-livreur:
+    patch:
+      tags: [Orders]
+      security: [{ BearerAuth: [] }]
+      summary: Assign livreur to order
+      parameters:
+        [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Livreur assigned } }
+  /orders/delete/{id}:
+    delete:
+      tags: [Orders]
+      security: [{ BearerAuth: [] }]
+      summary: Delete order
+      parameters:
+        [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Deleted } }
+
+  # Payments
+  /payments:
+    get:
+      tags: [Payments]
+      security: [{ BearerAuth: [] }]
+      summary: List payments
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      responses: { "200": { description: OK } }
+    post:
+      tags: [Payments]
+      security: [{ BearerAuth: [] }]
+      summary: Add payment
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Payment" }
+      responses: { "201": { description: Created } }
+  /payments/{id}:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Payments]
+      security: [{ BearerAuth: [] }]
+      summary: Get payment
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      responses: { "200": { description: OK } }
+    put:
+      tags: [Payments]
+      security: [{ BearerAuth: [] }]
+      summary: Update payment
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Payment" }
+      responses: { "200": { description: Updated } }
+    delete:
+      tags: [Payments]
+      security: [{ BearerAuth: [] }]
+      summary: Delete payment
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      responses: { "204": { description: Deleted } }
+
+  # Feedback
+  /feedback:
+    post:
+      tags: [Feedback]
+      security: [{ BearerAuth: [] }]
+      summary: Create feedback
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Feedback" }
+      responses: { "201": { description: Created } }
+  /feedback/{type}/{id}:
+    get:
+      tags: [Feedback]
+      security: [{ BearerAuth: [] }]
+      summary: Get feedback by type (order|delivery|restaurant)
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema: { type: string }
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses: { "200": { description: OK } }
+  /feedback/my-feedback:
+    get:
+      tags: [Feedback]
+      security: [{ BearerAuth: [] }]
+      summary: User's feedback
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      responses: { "200": { description: OK } }
+
+  # Notifications
+  /notifications:
+    get:
+      tags: [Notifications]
+      security: [{ BearerAuth: [] }]
+      summary: List notifications
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      responses: { "200": { description: OK } }
+    post:
+      tags: [Notifications]
+      security: [{ BearerAuth: [] }]
+      summary: Create notification
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Notification" }
+      responses: { "201": { description: Created } }
+  /notifications/unread:
+    get:
+      tags: [Notifications]
+      security: [{ BearerAuth: [] }]
+      summary: List unread
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      responses: { "200": { description: OK } }
+  /notifications/{id}/read:
+    put:
+      tags: [Notifications]
+      security: [{ BearerAuth: [] }]
+      summary: Mark one read
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      parameters:
+        [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Updated } }
+  /notifications/read-all:
+    put:
+      tags: [Notifications]
+      security: [{ BearerAuth: [] }]
+      summary: Mark all read
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      responses: { "200": { description: Updated } }
+  /notifications/{id}:
+    delete:
+      tags: [Notifications]
+      security: [{ BearerAuth: [] }]
+      summary: Delete notification
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      parameters:
+        [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Deleted } }
+
+  # Settings
+  /settings:
+    get:
+      tags: [Settings]
+      security: [{ BearerAuth: [] }]
+      summary: Get settings
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      responses: { "200": { description: OK } }
+    put:
+      tags: [Settings]
+      security: [{ BearerAuth: [] }]
+      summary: Update settings
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Settings" }
+      responses: { "200": { description: Updated } }
+
+  # Health Check
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      responses: { "200": { description: OK } }
+
+  # Route Optimization
+  /route-optimization/optimized-route:
+    get:
+      tags: [Route]
+      security: [{ BearerAuth: [] }]
+      summary: Optimized delivery route
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      responses: { "200": { description: OK } }
+  /route-optimization/update-location:
+    post:
+      tags: [Route]
+      security: [{ BearerAuth: [] }]
+      summary: Live GPS ping
+      description: "**(Unverified: Route file not provided. Path and security should be confirmed.)**"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lat: { type: number }
+                lon: { type: number }
+      responses: { "200": { description: OK } }
+
+x-websocket-events:
+  description: Socket.IO events (non-standard WebSocket)
+  events:
+    user_connected:
+      payload: { userId: string }
+    user_disconnected:
+      payload: { userId: string }
+    user_status_change:
+      payload: { userId: string, status: [online, offline] }
+    online_users:
+      payload: [string]

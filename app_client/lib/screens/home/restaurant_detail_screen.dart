@@ -262,7 +262,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
   void _addToCart(Food food) {
     // This assumes CartProvider is imported and available via Provider.of
     // Add null checks or handle cases where context might not have a CartProvider
-    Provider.of<CartProvider>(context, listen: false).addToCart(food);
+    Provider.of<CartProvider>(context, listen: false).addToCart(food.id);
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('${food.name} added to cart!')));

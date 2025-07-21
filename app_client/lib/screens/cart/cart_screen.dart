@@ -44,7 +44,7 @@ class _CartScreenState extends State<CartScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (cartProvider.error != null) {
+          if (cartProvider.errorMessage != null) {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -52,7 +52,7 @@ class _CartScreenState extends State<CartScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Error: ${cartProvider.error}',
+                      'Error: ${cartProvider.errorMessage}',
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.red, fontSize: 16),
                     ),
@@ -257,7 +257,7 @@ class CartItemCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Image.network(
-                cartItem.foodDetails?.imageUrl ??
+                cartItem.food.imageUrl ??
                     'https://via.placeholder.com/70', // FIX: Access imageUrl via foodDetails
                 width: 70,
                 height: 70,
@@ -277,7 +277,7 @@ class CartItemCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    cartItem.foodDetails?.name ??
+                    cartItem.food.restaurantDetails.name ??
                         'Unknown Food', // FIX: Access name via foodDetails
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
@@ -288,7 +288,7 @@ class CartItemCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    cartItem.foodDetails?.restaurantDetails.name ??
+                    cartItem.food.restaurantDetails.name ??
                         'Unknown Restaurant', // FIX: Access restaurantDetails via foodDetails
                     style: TextStyle(color: Colors.grey[600]),
                     maxLines: 1,
@@ -299,7 +299,7 @@ class CartItemCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '\$${(cartItem.foodDetails?.price ?? 0.0).toStringAsFixed(2)}', // FIX: Access price via foodDetails
+                        '\$${(cartItem.food.price ?? 0.0).toStringAsFixed(2)}', // FIX: Access price via foodDetails
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).primaryColor,

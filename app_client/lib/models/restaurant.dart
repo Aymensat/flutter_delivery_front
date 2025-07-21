@@ -1,3 +1,5 @@
+// lib/models/restaurant.dart
+// No changes needed based on previous context and OAS, but including for completeness.
 class Restaurant {
   final String id;
   final String name;
@@ -57,6 +59,27 @@ class Restaurant {
       updatedAt: DateTime.parse(json['updatedAt']),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'name': name,
+      'images': images,
+      'description': description,
+      'address': address,
+      'contact': contact,
+      'workingHours': workingHours,
+      'cuisine': cuisine,
+      'latitude': latitude,
+      'longitude': longitude,
+      'rating': rating,
+      'imageUrl': imageUrl,
+      'openingHours': openingHours?.toJson(),
+      'isActive': isActive,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
+    };
+  }
 }
 
 class OpeningHours {
@@ -66,6 +89,10 @@ class OpeningHours {
   OpeningHours({required this.open, required this.close});
 
   factory OpeningHours.fromJson(Map<String, dynamic> json) {
-    return OpeningHours(open: json['open'], close: json['close']);
+    return OpeningHours(open: json['open'] ?? '', close: json['close'] ?? '');
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'open': open, 'close': close};
   }
 }

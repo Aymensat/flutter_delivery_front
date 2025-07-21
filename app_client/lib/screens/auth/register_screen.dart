@@ -361,7 +361,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       builder: (context, authProvider, child) {
         return Column(
           children: [
-            if (authProvider.error != null)
+            if (authProvider.errorMessage != null)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
@@ -372,7 +372,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   border: Border.all(color: Colors.red[300]!),
                 ),
                 child: Text(
-                  authProvider.error!,
+                  authProvider.errorMessage!,
                   style: TextStyle(color: Colors.red[700]),
                   textAlign: TextAlign.center,
                 ),
