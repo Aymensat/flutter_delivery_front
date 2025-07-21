@@ -6,7 +6,7 @@ import '../../providers/cart_provider.dart';
 import '../../models/cart.dart'; // Ensure this is imported
 
 class CartScreen extends StatefulWidget {
-  const CartScreen({Key? key}) : super(key: key); // FIX: Add key parameter
+  const CartScreen({super.key}); // FIX: Add key parameter
 
   @override
   State<CartScreen> createState() => _CartScreenState();
@@ -237,11 +237,11 @@ class CartItemCard extends StatelessWidget {
   final VoidCallback onRemove;
 
   const CartItemCard({
-    Key? key, // FIX: Add key parameter
+    super.key, // FIX: Add key parameter
     required this.cartItem,
     required this.onQuantityChanged,
     required this.onRemove,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

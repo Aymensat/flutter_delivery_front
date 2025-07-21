@@ -152,7 +152,7 @@ class CartService {
   }
 
   // FIX: Clear cart method signature for userId and token
-  Future<Map<String, dynamic>> clearCart(String userId, String token) async {
+  Future<Map<String, dynamic>> clearCart(String userId, String? token) async {
     try {
       if (token == null) {
         return {'success': false, 'message': 'No authentication token found'};

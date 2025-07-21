@@ -10,7 +10,7 @@ import '../../widgets/category_filter.dart'
 import 'restaurant_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key); // FIX: Add key parameter
+  const HomeScreen({super.key}); // FIX: Add key parameter
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
