@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart'; // Import for WidgetsBinding
 import '../models/restaurant.dart';
 import '../models/food.dart';
 import '../services/api_service.dart';
@@ -35,7 +36,10 @@ class RestaurantProvider with ChangeNotifier {
   Future<void> loadRestaurants({double? lat, double? lon}) async {
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    // Defer notifyListeners to avoid calling during build if loadRestaurants is called from initState
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
 
     try {
       _restaurants = await _apiService.getRestaurants(lat: lat, lon: lon);
@@ -51,14 +55,18 @@ class RestaurantProvider with ChangeNotifier {
       _error = e.toString();
     } finally {
       _isLoading = false;
-      notifyListeners();
+      notifyListeners(); // This notifyListeners is fine as it's after the async operation
     }
   }
 
   Future<List<Food>> fetchFoodsForRestaurant(String restaurantId) async {
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    // Defer notifyListeners to avoid calling during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
+
     try {
       _foods = await _apiService.getFoodsByRestaurantId(restaurantId);
       return _foods;
@@ -67,7 +75,7 @@ class RestaurantProvider with ChangeNotifier {
       rethrow; // Re-throw to be caught by the UI
     } finally {
       _isLoading = false;
-      notifyListeners();
+      notifyListeners(); // This notifyListeners is fine as it's after the async operation
     }
   }
 
@@ -75,7 +83,10 @@ class RestaurantProvider with ChangeNotifier {
   Future<void> loadRestaurantById(String id) async {
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    // Defer notifyListeners to avoid calling during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
 
     try {
       _selectedRestaurant = await _apiService.getRestaurantById(id);
@@ -91,7 +102,10 @@ class RestaurantProvider with ChangeNotifier {
   Future<void> loadFoods() async {
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    // Defer notifyListeners to avoid calling during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
 
     try {
       _foods = await _apiService.getFoods();

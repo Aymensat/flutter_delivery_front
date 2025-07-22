@@ -17,10 +17,6 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-// lib/screens/home/home_screen.dart (Corrected SearchBar Usage)
-
-// ... (previous imports and class definitions) ...
-
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedCategory = 'All';
@@ -43,16 +39,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadRestaurants() async {
+    final restaurantProvider = Provider.of<RestaurantProvider>(
+      context,
+      listen: false,
+    );
+    // Clear any previous errors before loading new data
+    restaurantProvider.clearError();
     try {
-      await Provider.of<RestaurantProvider>(
-        context,
-        listen: false,
-      ).loadRestaurants();
+      await restaurantProvider.loadRestaurants();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading restaurants: $e')),
-        );
+        // The error is already handled by the provider's internal state.
+        // We can optionally show a snackbar here if a general loading error occurs for the home screen.
+        // For now, let's rely on the provider's error message display in the UI.
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(content: Text('Error loading restaurants: $e')),
+        // );
       }
     }
   }
@@ -93,21 +95,12 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(16.0),
               child: CustomSearchBar.SearchBar(
                 controller: _searchController,
-                // The onChanged callback will be triggered whenever the text changes
-                // including when the internal clear button is pressed in SearchBar.
                 onChanged: (query) {
                   // The _searchController.text will already be updated here,
                   // so you could also use _searchController.text directly,
                   // but 'query' is passed for convenience.
                   // No need to call setSearchQuery here again if using the listener below.
-                  // If you prefer not to use a listener, you can keep this:
-                  // Provider.of<RestaurantProvider>(context, listen: false).setSearchQuery(query);
                 },
-                // onSubmitted is optional, if you need to trigger a search only on submit
-                // onSubmitted: (query) {
-                //   Provider.of<RestaurantProvider>(context, listen: false).setSearchQuery(query);
-                // },
-                // Remove onSearch and onClear, as they are not part of your SearchBar's API
               ),
             ),
             Consumer<RestaurantProvider>(
@@ -130,11 +123,37 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (restaurantProvider.isLoading) {
                     return const Center(child: CircularProgressIndicator());
                   }
+                  // Display error if present
                   if (restaurantProvider.error != null) {
                     return Center(
-                      child: Text(
-                        'Error: ${restaurantProvider.error}',
-                        style: const TextStyle(color: Colors.red),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: Colors.red,
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Error: ${restaurantProvider.error}',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 16,
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              restaurantProvider
+                                  .clearError(); // Clear error before retrying
+                              _loadRestaurants(); // Reload restaurants
+                            },
+                            icon: Icon(Icons.refresh),
+                            label: Text('Retry Loading Restaurants'),
+                          ),
+                        ],
                       ),
                     );
                   }
@@ -168,12 +187,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _navigateToRestaurantDetail(Restaurant restaurant) {
-    Navigator.push(
+  void _navigateToRestaurantDetail(Restaurant restaurant) async {
+    // Navigate to the detail screen and wait for it to be popped
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => RestaurantDetailScreen(restaurant: restaurant),
       ),
     );
+
+    // After returning from the detail screen, clear any errors that might have been set
+    // by the detail screen's food loading, so the home screen doesn't display them.
+    Provider.of<RestaurantProvider>(context, listen: false).clearError();
+    // Optionally, you might want to refresh the restaurant list here if needed
+    // _loadRestaurants();
   }
 }

@@ -19,8 +19,9 @@ class RestaurantDetailScreen extends StatefulWidget {
 class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _isLoading = true;
+  bool _isLoadingFoods = true; // Renamed for clarity
   List<Food> _foods = [];
+  String? _foodErrorMessage; // To store specific food loading errors
 
   // Define the base server URL for images.
   // This should match your backend server's address.
@@ -43,6 +44,11 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
   }
 
   Future<void> _loadRestaurantFoods() async {
+    setState(() {
+      _isLoadingFoods = true;
+      _foodErrorMessage = null; // Clear previous errors
+    });
+
     try {
       final foods = await Provider.of<RestaurantProvider>(
         context,
@@ -50,16 +56,26 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
       ).fetchFoodsForRestaurant(widget.restaurant.id);
       setState(() {
         _foods = foods;
-        _isLoading = false;
       });
+      if (foods.isEmpty) {
+        _foodErrorMessage = 'No food items available for this restaurant yet.';
+      }
     } catch (e) {
+      // Check if the error is a 404 (Not Found) specifically for foods
+      if (e.toString().contains('404') && e.toString().contains('/foods')) {
+        _foodErrorMessage = 'No food items found for this restaurant.';
+      } else {
+        _foodErrorMessage = 'Error loading food menu: ${e.toString()}';
+      }
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error loading foods: $e')));
+        ).showSnackBar(SnackBar(content: Text(_foodErrorMessage!)));
       }
+      _foods = []; // Ensure food list is empty on error
+    } finally {
       setState(() {
-        _isLoading = false;
+        _isLoadingFoods = false;
       });
     }
   }
@@ -169,7 +185,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
                       child: TabBarView(
                         controller: _tabController,
                         children: [
-                          _isLoading
+                          _isLoadingFoods
                               ? const Center(child: CircularProgressIndicator())
                               : _buildMenuList(),
                           const Center(child: Text('Reviews Tab Content')),
@@ -188,8 +204,35 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
   }
 
   Widget _buildMenuList() {
+    if (_foodErrorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.info_outline, size: 48, color: Colors.grey),
+              SizedBox(height: 8),
+              Text(
+                _foodErrorMessage!,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+              ),
+              SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _loadRestaurantFoods,
+                icon: Icon(Icons.refresh),
+                label: Text('Retry Loading Menu'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     if (_foods.isEmpty) {
-      return const Center(child: Text('No food items available.'));
+      return const Center(
+        child: Text('No food items available for this restaurant.'),
+      );
     }
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 16),
