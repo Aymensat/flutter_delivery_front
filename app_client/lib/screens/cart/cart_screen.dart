@@ -2,17 +2,23 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
-// import '../../providers/auth_provider.dart'; // FIX: Remove unused import
 import '../../models/cart.dart'; // Ensure this is imported
 
 class CartScreen extends StatefulWidget {
-  const CartScreen({super.key}); // FIX: Add key parameter
+  const CartScreen({super.key});
 
   @override
   State<CartScreen> createState() => _CartScreenState();
 }
 
 class _CartScreenState extends State<CartScreen> {
+  // Define the base server URL for images.
+  // This should match your backend server's address.
+  // For Android Emulator, 'http://10.0.2.2:3000' is typically used.
+  // For iOS Simulator/Desktop, 'http://localhost:3000' is common.
+  // For a physical device, use your computer's local IP address (e.g., 'http://192.168.1.5:3000').
+  static const String baseServerUrl = 'http://10.0.2.2:3000';
+
   @override
   void initState() {
     super.initState();
@@ -94,10 +100,7 @@ class _CartScreenState extends State<CartScreen> {
                         Provider.of<CartProvider>(
                           context,
                           listen: false,
-                        ).updateCartItemQuantity(
-                          cartItem.id,
-                          newQuantity,
-                        ); // FIX: Correct method call
+                        ).updateCartItemQuantity(cartItem.id, newQuantity);
                       },
                       onRemove: () {
                         Provider.of<CartProvider>(
@@ -105,6 +108,8 @@ class _CartScreenState extends State<CartScreen> {
                           listen: false,
                         ).removeFromCart(cartItem.id);
                       },
+                      // Pass the baseServerUrl to the CartItemCard
+                      baseServerUrl: baseServerUrl,
                     );
                   },
                 ),
@@ -124,7 +129,7 @@ class _CartScreenState extends State<CartScreen> {
         color: Theme.of(context).cardColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1), // FIX: Use withOpacity
+            color: Colors.black.withOpacity(0.1),
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, -2),
@@ -230,21 +235,28 @@ class _CartScreenState extends State<CartScreen> {
   }
 }
 
-// FIX: Update CartItemCard to CartCard to reflect the model change
 class CartItemCard extends StatelessWidget {
-  final Cart cartItem; // FIX: Changed type to Cart
+  final Cart cartItem;
   final ValueChanged<int> onQuantityChanged;
   final VoidCallback onRemove;
+  final String baseServerUrl; // New: Pass baseServerUrl to CartItemCard
 
   const CartItemCard({
-    super.key, // FIX: Add key parameter
+    super.key,
     required this.cartItem,
     required this.onQuantityChanged,
     required this.onRemove,
+    required this.baseServerUrl, // New: Require baseServerUrl
   });
 
   @override
   Widget build(BuildContext context) {
+    // Construct the full image URL for the cart item's food image.
+    final String? fullFoodImageUrl =
+        (cartItem.food.imageUrl != null && cartItem.food.imageUrl!.isNotEmpty)
+        ? '$baseServerUrl${cartItem.food.imageUrl!}'
+        : null;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
@@ -256,19 +268,32 @@ class CartItemCard extends StatelessWidget {
             // Food Image
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                cartItem.food.imageUrl ??
-                    'https://via.placeholder.com/70', // FIX: Access imageUrl via foodDetails
-                width: 70,
-                height: 70,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  width: 70,
-                  height: 70,
-                  color: Colors.grey[200],
-                  child: const Icon(Icons.fastfood, color: Colors.grey),
-                ),
-              ),
+              child: fullFoodImageUrl != null
+                  ? Image.network(
+                      fullFoodImageUrl,
+                      width: 70,
+                      height: 70,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        width: 70,
+                        height: 70,
+                        color: Colors.grey[200],
+                        child: Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                      ),
+                    )
+                  : Container(
+                      width: 70,
+                      height: 70,
+                      color: Colors.grey[200],
+                      child: Center(
+                        child: Icon(Icons.fastfood, color: Colors.grey[400]),
+                      ),
+                    ),
             ),
             const SizedBox(width: 12),
             // Item Details
@@ -277,8 +302,7 @@ class CartItemCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    cartItem.food.restaurantDetails.name ??
-                        'Unknown Food', // FIX: Access name via foodDetails
+                    cartItem.food.name, // Access food name directly
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -288,8 +312,8 @@ class CartItemCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    cartItem.food.restaurantDetails.name ??
-                        'Unknown Restaurant', // FIX: Access restaurantDetails via foodDetails
+                    cartItem.food.restaurantDetails?.name ??
+                        'Unknown Restaurant', // Access restaurant name
                     style: TextStyle(color: Colors.grey[600]),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -299,7 +323,7 @@ class CartItemCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '\$${(cartItem.food.price ?? 0.0).toStringAsFixed(2)}', // FIX: Access price via foodDetails
+                        '\$${(cartItem.food.price).toStringAsFixed(2)}', // Access price directly
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).primaryColor,
@@ -318,8 +342,9 @@ class CartItemCard extends StatelessWidget {
                               minHeight: 32,
                             ),
                             style: IconButton.styleFrom(
-                              backgroundColor: Theme.of(context).primaryColor
-                                  .withOpacity(0.1), // FIX: Use withOpacity
+                              backgroundColor: Theme.of(
+                                context,
+                              ).primaryColor.withOpacity(0.1),
                               foregroundColor: Theme.of(context).primaryColor,
                             ),
                           ),

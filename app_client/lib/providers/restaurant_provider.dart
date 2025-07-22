@@ -41,6 +41,12 @@ class RestaurantProvider with ChangeNotifier {
       _restaurants = await _apiService.getRestaurants(lat: lat, lon: lon);
       _filteredRestaurants = _restaurants;
       _applyFilters();
+
+      if (_restaurants.isNotEmpty) {
+        print(
+          'RestaurantProvider: Fetched first restaurant imageUrl: ${_restaurants.first.imageUrl}',
+        );
+      }
     } catch (e) {
       _error = e.toString();
     } finally {

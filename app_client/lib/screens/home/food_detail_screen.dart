@@ -8,6 +8,20 @@ class FoodDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Define the base server URL for images.
+    // This should match your backend server's address.
+    // For Android Emulator, 'http://10.0.2.2:3000' is typically used.
+    // For iOS Simulator/Desktop, 'http://localhost:3000' is common.
+    // For a physical device, use your computer's local IP address (e.g., 'http://192.168.1.5:3000').
+    const String baseServerUrl = 'http://10.0.2.2:3000';
+
+    // Construct the full image URL.
+    // Check if food.imageUrl is not null and not empty before constructing.
+    final String? fullImageUrl =
+        (food.imageUrl != null && food.imageUrl!.isNotEmpty)
+        ? '$baseServerUrl${food.imageUrl!}'
+        : null;
+
     return Scaffold(
       appBar: AppBar(title: Text(food.name)),
       body: SingleChildScrollView(
@@ -15,24 +29,43 @@ class FoodDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (food.imageUrl != null && food.imageUrl!.isNotEmpty)
+            // Food Image Display
+            if (fullImageUrl !=
+                null) // Only display Image.network if a valid URL exists
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Image.network(
-                  food.imageUrl!,
+                  fullImageUrl,
                   height: 200,
                   width: double.infinity,
                   fit: BoxFit.cover,
+                  // Handle errors during image loading
                   errorBuilder: (context, error, stackTrace) => Container(
                     height: 200,
                     color: Colors.grey[300],
-                    child: const Center(
+                    child: Center(
                       child: Icon(
                         Icons.broken_image,
                         size: 50,
-                        color: Colors.grey,
+                        color: Colors.grey[400],
                       ),
                     ),
+                  ),
+                ),
+              )
+            else // Display a placeholder if no valid image URL
+              Container(
+                height: 200,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.fastfood,
+                    size: 80,
+                    color: Colors.grey[400],
                   ),
                 ),
               ),
@@ -65,9 +98,9 @@ class FoodDetailScreen extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 16),
-            Text(
+            const Text(
               'Ingredients:',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Wrap(

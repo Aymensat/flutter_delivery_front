@@ -13,8 +13,8 @@ import 'services/api_service.dart'; // Assuming ApiService is used to load token
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.clear(); // ONLY FOR DEBUGGING! Remove in production.
+  // final prefs = await SharedPreferences.getInstance();
+  // await prefs.clear(); // ONLY FOR DEBUGGING! Remove in production.
   // Load saved token (assuming ApiService handles this or it's moved to AuthService)
   // If token loading is part of AuthProvider's init or AuthService, this line might be removed.
   // For now, keeping it if it's the standard entry point for token loading.

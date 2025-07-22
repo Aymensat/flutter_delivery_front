@@ -2,20 +2,32 @@
 import 'package:flutter/material.dart';
 import '../models/restaurant.dart';
 import '../models/food.dart'; // Added: Import for Food class
-// import 'rating_stars.dart'; // Commented out: Unused import for RestaurantCard
 
 class RestaurantCard extends StatelessWidget {
   final Restaurant restaurant;
   final VoidCallback onTap;
 
   const RestaurantCard({
-    super.key, // FIX: Use super.key
+    super.key,
     required this.restaurant,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Define the base server URL for images.
+    // This should match your backend server's address.
+    // For Android Emulator, 'http://10.0.2.2:3000' is typically used.
+    // For iOS Simulator/Desktop, 'http://localhost:3000' is common.
+    // For a physical device, use your computer's local IP address (e.g., 'http://192.168.1.5:3000').
+    const String baseServerUrl = 'http://10.0.2.2:3000';
+
+    // Construct the full image URL for the restaurant.
+    final String? fullRestaurantImageUrl =
+        (restaurant.imageUrl != null && restaurant.imageUrl!.isNotEmpty)
+        ? '$baseServerUrl${restaurant.imageUrl!}'
+        : null;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
@@ -26,26 +38,31 @@ class RestaurantCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Restaurant Image
+            // Restaurant Image Container
             Container(
               height: 160,
               decoration: BoxDecoration(
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(12),
                 ),
-                // FIX: Conditional image loading to avoid errorBuilder on NetworkImage
-                image:
-                    restaurant.imageUrl != null &&
-                        restaurant.imageUrl!.isNotEmpty
+                // Conditionally set the image decoration if a valid URL exists
+                image: fullRestaurantImageUrl != null
                     ? DecorationImage(
-                        image: NetworkImage(restaurant.imageUrl!),
+                        image: NetworkImage(fullRestaurantImageUrl),
                         fit: BoxFit.cover,
+                        // Handle errors during image loading
+                        onError: (exception, stackTrace) {
+                          // Print error to console for debugging
+                          print(
+                            'RestaurantCard NetworkImage error for ${restaurant.name}: $exception',
+                          );
+                        },
                       )
-                    : null, // No image if URL is null or empty
+                    : null, // No image decoration if URL is null
               ),
-              // FIX: Display placeholder if image URL is null or empty
-              child:
-                  (restaurant.imageUrl == null || restaurant.imageUrl!.isEmpty)
+              // Display a placeholder if the image URL is null or empty,
+              // or if the image fails to load.
+              child: fullRestaurantImageUrl == null
                   ? Container(
                       decoration: BoxDecoration(
                         color: Colors.grey[300],
@@ -53,15 +70,15 @@ class RestaurantCard extends StatelessWidget {
                           top: Radius.circular(12),
                         ),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Icon(
                           Icons.restaurant,
                           size: 80,
-                          color: Colors.grey,
+                          color: Colors.grey[400],
                         ),
                       ),
                     )
-                  : null, // If image is set, no child needed
+                  : null, // No child needed if image is loading/loaded
             ),
 
             Padding(
@@ -132,120 +149,6 @@ class RestaurantCard extends StatelessWidget {
                     ],
                   ),
                 ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class FoodCard extends StatelessWidget {
-  final Food food;
-  final VoidCallback onAddToCart;
-
-  const FoodCard({
-    super.key, // FIX: Use super.key
-    required this.food,
-    required this.onAddToCart,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          children: [
-            // Food Image
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                // FIX: Conditional image loading to avoid errorBuilder on NetworkImage
-                image: food.imageUrl != null && food.imageUrl!.isNotEmpty
-                    ? DecorationImage(
-                        image: NetworkImage(food.imageUrl!),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              // FIX: Display placeholder if image URL is null or empty
-              child: (food.imageUrl == null || food.imageUrl!.isEmpty)
-                  ? Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.fastfood,
-                          size: 40,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    food.name,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    food.description,
-                    style: const TextStyle(fontSize: 13, color: Colors.grey),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Text(
-                        '\$${food.price.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                      ),
-                      // FIX: Null check for calories before using '>' operator and displaying
-                      if (food.calories != null && food.calories! > 0) ...[
-                        const SizedBox(width: 8),
-                        Text(
-                          '${food.calories!.toStringAsFixed(0)} cal',
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            // Add to Cart Button
-            IconButton(
-              onPressed: onAddToCart,
-              icon: Icon(
-                Icons.add_shopping_cart,
-                color: Theme.of(context).primaryColor,
               ),
             ),
           ],

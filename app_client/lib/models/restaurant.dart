@@ -1,5 +1,6 @@
 // lib/models/restaurant.dart
-// No changes needed based on previous context and OAS, but including for completeness.
+import 'package:flutter/foundation.dart'; // For @required if needed
+
 class Restaurant {
   final String id;
   final String name;
@@ -12,8 +13,8 @@ class Restaurant {
   final double latitude;
   final double longitude;
   final double rating;
-  final String? imageUrl;
-  final OpeningHours? openingHours;
+  final String? imageUrl; // Nullable as per schema
+  final OpeningHours? openingHours; // Nullable as per schema
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -39,24 +40,37 @@ class Restaurant {
 
   factory Restaurant.fromJson(Map<String, dynamic> json) {
     return Restaurant(
-      id: json['_id'],
-      name: json['name'],
-      images: List<String>.from(json['images'] ?? []),
-      description: json['description'],
-      address: json['address'],
-      contact: json['contact'],
-      workingHours: json['workingHours'],
-      cuisine: json['cuisine'],
-      latitude: json['latitude'].toDouble(),
-      longitude: json['longitude'].toDouble(),
-      rating: json['rating'].toDouble(),
-      imageUrl: json['imageUrl'],
+      id: json['_id'] as String? ?? '', // Robust null handling
+      name: json['name'] as String? ?? '',
+      images: List<String>.from(
+        json['images'] ?? [],
+      ), // Ensure list of strings, handle null
+      description: json['description'] as String? ?? '',
+      address: json['address'] as String? ?? '',
+      contact: json['contact'] as String? ?? '',
+      workingHours: json['workingHours'] as String? ?? '',
+      cuisine: json['cuisine'] as String? ?? '',
+      latitude:
+          (json['latitude'] as num?)?.toDouble() ??
+          0.0, // Handle null and convert
+      longitude:
+          (json['longitude'] as num?)?.toDouble() ??
+          0.0, // Handle null and convert
+      rating:
+          (json['rating'] as num?)?.toDouble() ??
+          0.0, // Handle null and convert
+      imageUrl: json['imageUrl'] as String?, // Directly cast to String?
       openingHours: json['openingHours'] != null
-          ? OpeningHours.fromJson(json['openingHours'])
-          : null,
-      isActive: json['isActive'] ?? true,
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+          ? OpeningHours.fromJson(json['openingHours'] as Map<String, dynamic>)
+          : null, // Conditionally parse OpeningHours
+      isActive:
+          json['isActive'] as bool? ?? true, // Default to true if not provided
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now(), // Safe parsing
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+          DateTime.now(), // Safe parsing
     );
   }
 
@@ -89,7 +103,10 @@ class OpeningHours {
   OpeningHours({required this.open, required this.close});
 
   factory OpeningHours.fromJson(Map<String, dynamic> json) {
-    return OpeningHours(open: json['open'] ?? '', close: json['close'] ?? '');
+    return OpeningHours(
+      open: json['open'] as String? ?? '', // Robust null handling
+      close: json['close'] as String? ?? '', // Robust null handling
+    );
   }
 
   Map<String, dynamic> toJson() {

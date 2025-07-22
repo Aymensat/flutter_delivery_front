@@ -3,9 +3,9 @@ import 'package:provider/provider.dart';
 import '../../models/restaurant.dart';
 import '../../models/food.dart';
 import '../../providers/restaurant_provider.dart';
-import '../../providers/cart_provider.dart'; // Keep if _addToCart is used
+import '../../providers/cart_provider.dart';
 import '../../widgets/rating_stars.dart';
-import 'food_detail_screen.dart'; // This import will now be used
+import 'food_detail_screen.dart';
 
 class RestaurantDetailScreen extends StatefulWidget {
   final Restaurant restaurant;
@@ -22,6 +22,13 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
   bool _isLoading = true;
   List<Food> _foods = [];
 
+  // Define the base server URL for images.
+  // This should match your backend server's address.
+  // For Android Emulator, 'http://10.0.2.2:3000' is typically used.
+  // For iOS Simulator/Desktop, 'http://localhost:3000' is common.
+  // For a physical device, use your computer's local IP address (e.g., 'http://192.168.1.5:3000').
+  static const String baseServerUrl = 'http://10.0.2.2:3000';
+
   @override
   void initState() {
     super.initState();
@@ -37,11 +44,10 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
 
   Future<void> _loadRestaurantFoods() async {
     try {
-      // FIX: Correct method name 'fetchFoodsForRestaurant'
       final foods = await Provider.of<RestaurantProvider>(
         context,
         listen: false,
-      ).fetchFoodsForRestaurant(widget.restaurant.id); // Corrected method call
+      ).fetchFoodsForRestaurant(widget.restaurant.id);
       setState(() {
         _foods = foods;
         _isLoading = false;
@@ -60,6 +66,13 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Construct the full image URL for the restaurant's main image.
+    final String? fullRestaurantImageUrl =
+        (widget.restaurant.imageUrl != null &&
+            widget.restaurant.imageUrl!.isNotEmpty)
+        ? '$baseServerUrl${widget.restaurant.imageUrl!}'
+        : null;
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -68,19 +81,31 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
             floating: false,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              background: Image.network(
-                widget.restaurant.imageUrl ??
-                    'https://via.placeholder.com/400x250.png?text=Restaurant+Image',
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  color: const Color.fromRGBO(200, 200, 200, 1.0),
-                  child: const Icon(
-                    Icons.broken_image,
-                    size: 50,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
+              background: fullRestaurantImageUrl != null
+                  ? Image.network(
+                      fullRestaurantImageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: Colors.grey[300],
+                        child: Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            size: 50,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                      ),
+                    )
+                  : Container(
+                      color: Colors.grey[300],
+                      child: Center(
+                        child: Icon(
+                          Icons.restaurant,
+                          size: 80,
+                          color: Colors.grey[400],
+                        ),
+                      ),
+                    ),
             ),
           ),
           SliverList(
@@ -98,7 +123,6 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
                       ),
                     ),
                     const SizedBox(height: 8),
-                    // FIX: Removed 'reviewCount' as it's not defined in RatingStars
                     RatingStars(
                       rating: widget.restaurant.rating,
                       color: Colors.amber,
@@ -175,32 +199,54 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
       itemCount: _foods.length,
       itemBuilder: (context, index) {
         final food = _foods[index];
+        // Construct the full image URL for each food item in the menu.
+        final String? fullFoodImageUrl =
+            (food.imageUrl != null && food.imageUrl!.isNotEmpty)
+            ? '$baseServerUrl${food.imageUrl!}'
+            : null;
+
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 8),
           elevation: 2,
           child: ListTile(
-            leading: food.imageUrl != null && food.imageUrl!.isNotEmpty
+            leading: fullFoodImageUrl != null
                 ? Image.network(
-                    food.imageUrl!,
+                    fullFoodImageUrl,
+                    width: 60, // Adjust size as needed
+                    height: 60, // Adjust size as needed
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 60,
+                      height: 60,
+                      color: Colors.grey[200],
+                      child: Center(
+                        child: Icon(
+                          Icons.broken_image,
+                          color: Colors.grey[400],
+                        ),
+                      ),
+                    ),
+                  )
+                : Container(
                     width: 60,
                     height: 60,
-                    fit: BoxFit.cover,
-                  )
-                : const Icon(Icons.fastfood, size: 60),
+                    color: Colors.grey[200],
+                    child: Center(
+                      child: Icon(Icons.fastfood, color: Colors.grey[400]),
+                    ),
+                  ),
             title: Text(
               food.name,
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Text(food.description),
             trailing: Row(
-              // Using a Row to contain both price and add to cart button
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text('\$${food.price.toStringAsFixed(2)}'),
                 IconButton(
                   icon: const Icon(Icons.add_shopping_cart),
-                  onPressed: () =>
-                      _addToCart(food), // FIX: Call _addToCart here
+                  onPressed: () => _addToCart(food),
                 ),
               ],
             ),
@@ -260,8 +306,6 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
   }
 
   void _addToCart(Food food) {
-    // This assumes CartProvider is imported and available via Provider.of
-    // Add null checks or handle cases where context might not have a CartProvider
     Provider.of<CartProvider>(context, listen: false).addToCart(food.id);
     ScaffoldMessenger.of(
       context,

@@ -1,198 +1,74 @@
-// widgets/restaurant_card.dart
+// lib/widgets/food_card.dart
 import 'package:flutter/material.dart';
-import '../models/restaurant.dart';
-import '../models/food.dart'; // Added: Import for Food class
-// import 'rating_stars.dart'; // Commented out: Unused import for RestaurantCard
-
-class RestaurantCard extends StatelessWidget {
-  final Restaurant restaurant;
-  final VoidCallback onTap;
-
-  const RestaurantCard({
-    super.key, // FIX: Use super.key
-    required this.restaurant,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Restaurant Image
-            Container(
-              height: 160,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
-                ),
-                // FIX: Conditional image loading to avoid errorBuilder on NetworkImage
-                image:
-                    restaurant.imageUrl != null &&
-                        restaurant.imageUrl!.isNotEmpty
-                    ? DecorationImage(
-                        image: NetworkImage(restaurant.imageUrl!),
-                        fit: BoxFit.cover,
-                      )
-                    : null, // No image if URL is null or empty
-              ),
-              // FIX: Display placeholder if image URL is null or empty
-              child:
-                  (restaurant.imageUrl == null || restaurant.imageUrl!.isEmpty)
-                  ? Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(12),
-                        ),
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.restaurant,
-                          size: 80,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    )
-                  : null, // If image is set, no child needed
-            ),
-
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    restaurant.name,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.restaurant_menu,
-                        size: 16,
-                        color: Colors.grey[600],
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        restaurant.cuisine,
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
-                      const SizedBox(width: 12),
-                      Icon(
-                        Icons.location_on,
-                        size: 16,
-                        color: Colors.grey[600],
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          restaurant.address,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    restaurant.description,
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Rating: ${restaurant.rating.toStringAsFixed(1)}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+import '../models/food.dart'; // Ensure this import path is correct
 
 class FoodCard extends StatelessWidget {
   final Food food;
   final VoidCallback onAddToCart;
 
-  const FoodCard({
-    super.key, // FIX: Use super.key
-    required this.food,
-    required this.onAddToCart,
-  });
+  const FoodCard({Key? key, required this.food, required this.onAddToCart})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Define the base server URL for images.
+    // This should match your backend server's address.
+    // For Android Emulator, 'http://10.0.2.2:3000' is typically used.
+    // For iOS Simulator/Desktop, 'http://localhost:3000' is common.
+    // For a physical device, use your computer's local IP address (e.g., 'http://192.168.1.5:3000').
+    const String baseServerUrl = 'http://10.0.2.2:3000';
+
+    // Construct the full image URL.
+    // Check if food.imageUrl is not null and not empty before constructing.
+    final String? fullImageUrl =
+        (food.imageUrl != null && food.imageUrl!.isNotEmpty)
+        ? '$baseServerUrl${food.imageUrl!}'
+        : null;
+
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(8),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Food Image
+            // Food Image Container
             Container(
-              width: 80,
-              height: 80,
+              width: 100,
+              height: 100,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
-                // FIX: Conditional image loading to avoid errorBuilder on NetworkImage
-                image: food.imageUrl != null && food.imageUrl!.isNotEmpty
+                // Conditionally set the image decoration if a valid URL exists
+                image: fullImageUrl != null
                     ? DecorationImage(
-                        image: NetworkImage(food.imageUrl!),
+                        image: NetworkImage(fullImageUrl),
                         fit: BoxFit.cover,
+                        // Handle errors during image loading
+                        onError: (exception, stackTrace) {
+                          // Print error to console for debugging
+                          print(
+                            'FoodCard NetworkImage error for ${food.name}: $exception',
+                          );
+                        },
                       )
-                    : null,
+                    : null, // No image decoration if URL is null
               ),
-              // FIX: Display placeholder if image URL is null or empty
-              child: (food.imageUrl == null || food.imageUrl!.isEmpty)
-                  ? Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.fastfood,
-                          size: 40,
-                          color: Colors.grey,
-                        ),
+              // Display a placeholder icon if the image URL is null or empty,
+              // or if the image fails to load.
+              child: fullImageUrl == null
+                  ? Center(
+                      child: Icon(
+                        Icons.fastfood,
+                        size: 60,
+                        color: Colors.grey[400],
                       ),
                     )
-                  : null,
+                  : null, // No child needed if image is loading/loaded
             ),
             const SizedBox(width: 12),
+            // Food Details Section
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,7 +76,7 @@ class FoodCard extends StatelessWidget {
                   Text(
                     food.name,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                     maxLines: 1,
@@ -209,7 +85,7 @@ class FoodCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     food.description,
-                    style: const TextStyle(fontSize: 13, color: Colors.grey),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -224,7 +100,7 @@ class FoodCard extends StatelessWidget {
                           color: Theme.of(context).primaryColor,
                         ),
                       ),
-                      // FIX: Null check for calories before using '>' operator and displaying
+                      // Display calories if available and greater than 0
                       if (food.calories != null && food.calories! > 0) ...[
                         const SizedBox(width: 8),
                         Text(

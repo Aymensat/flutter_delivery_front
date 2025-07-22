@@ -1,16 +1,19 @@
+// lib/models/food.dart
+import 'package:flutter/foundation.dart'; // For @required if needed, though not strictly necessary with null safety
+
 class Food {
   final String id;
   final String name;
   final String description;
   final String category;
-  final double? calories;
+  final double? calories; // Nullable as per schema, or can be 0
   final List<String> ingredients;
   final double price;
-  final String restaurant;
-  final RestaurantDetails restaurantDetails;
-  final String? imageUrl;
+  final String restaurant; // ID of the restaurant
+  final RestaurantDetails restaurantDetails; // Nested object
+  final String? imageUrl; // Nullable as images might not always be present
   final bool isAvailable;
-  final List<FoodRating> ratings;
+  final List<FoodRating> ratings; // List of ratings
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -25,7 +28,7 @@ class Food {
     required this.restaurant,
     required this.restaurantDetails,
     this.imageUrl,
-    this.isAvailable = true,
+    this.isAvailable = true, // Default value for isAvailable
     required this.ratings,
     required this.createdAt,
     required this.updatedAt,
@@ -61,30 +64,40 @@ class Food {
 
   factory Food.fromJson(Map<String, dynamic> json) {
     return Food(
-      id: json['_id'] ?? '',
-      name: json['name'] ?? '',
-      description: json['description'] ?? '',
-      category: json['category'] ?? '',
-      calories: json['calories']?.toDouble(),
-      ingredients: List<String>.from(json['ingredients'] ?? []),
-      price: (json['price'] ?? 0).toDouble(),
-      restaurant: json['restaurant'] ?? '',
+      id:
+          json['_id'] as String? ??
+          '', // Use null-aware ?? for default empty string
+      name: json['name'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      category: json['category'] as String? ?? '',
+      calories: (json['calories'] as num?)
+          ?.toDouble(), // Handle null and convert to double
+      ingredients: List<String>.from(
+        json['ingredients'] ?? [],
+      ), // Ensure it's a list of strings
+      price:
+          (json['price'] as num?)?.toDouble() ??
+          0.0, // Handle null and convert to double, default 0.0
+      restaurant: json['restaurant'] as String? ?? '',
       restaurantDetails: RestaurantDetails.fromJson(
-        json['restaurantDetails'] ?? {},
+        json['restaurantDetails'] as Map<String, dynamic>? ??
+            {}, // Handle null map
       ),
-      imageUrl: json['imageUrl'],
-      isAvailable: json['isAvailable'] ?? true,
+      imageUrl: json['imageUrl'] as String?, // Directly cast to String?
+      isAvailable:
+          json['isAvailable'] as bool? ??
+          true, // Default to true if not provided
       ratings:
           (json['ratings'] as List<dynamic>?)
-              ?.map((rating) => FoodRating.fromJson(rating))
+              ?.map((e) => FoodRating.fromJson(e as Map<String, dynamic>))
               .toList() ??
-          [],
-      createdAt: DateTime.parse(
-        json['createdAt'] ?? DateTime.now().toIso8601String(),
-      ),
-      updatedAt: DateTime.parse(
-        json['updatedAt'] ?? DateTime.now().toIso8601String(),
-      ),
+          [], // Handle null list and map each item
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now(), // Use tryParse and default to now
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+          DateTime.now(), // Use tryParse and default to now
     );
   }
 
@@ -101,7 +114,7 @@ class Food {
       'restaurantDetails': restaurantDetails.toJson(),
       'imageUrl': imageUrl,
       'isAvailable': isAvailable,
-      'ratings': ratings.map((rating) => rating.toJson()).toList(),
+      'ratings': ratings.map((r) => r.toJson()).toList(),
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -156,6 +169,8 @@ class Food {
   int get hashCode => id.hashCode;
 }
 
+// Nested class for restaurant details within the Food model
+// Renamed from FoodRestaurantDetails to RestaurantDetails for consistency with your original file
 class RestaurantDetails {
   final String name;
   final String address;
@@ -169,9 +184,11 @@ class RestaurantDetails {
 
   factory RestaurantDetails.fromJson(Map<String, dynamic> json) {
     return RestaurantDetails(
-      name: json['name'] ?? '',
-      address: json['address'] ?? '',
-      contact: json['contact'] ?? '',
+      name:
+          json['name'] as String? ??
+          '', // Use null-aware ?? for default empty string
+      address: json['address'] as String? ?? '',
+      contact: json['contact'] as String? ?? '',
     );
   }
 
@@ -180,6 +197,7 @@ class RestaurantDetails {
   }
 }
 
+// Nested class for food ratings
 class FoodRating {
   final String clientId;
   final double rating;
@@ -188,8 +206,12 @@ class FoodRating {
 
   factory FoodRating.fromJson(Map<String, dynamic> json) {
     return FoodRating(
-      clientId: json['clientId'] ?? '',
-      rating: (json['rating'] ?? 0).toDouble(),
+      clientId:
+          json['clientId'] as String? ??
+          '', // Use null-aware ?? for default empty string
+      rating:
+          (json['rating'] as num?)?.toDouble() ??
+          0.0, // Handle null and convert to double, default 0.0
     );
   }
 
