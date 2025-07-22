@@ -1,3 +1,4 @@
+// lib/screens/home/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/restaurant.dart';
@@ -10,84 +11,77 @@ import '../../widgets/category_filter.dart'
 import 'restaurant_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key}); // FIX: Add key parameter
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+// lib/screens/home/home_screen.dart (Corrected SearchBar Usage)
+
+// ... (previous imports and class definitions) ...
+
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _selectedCategory = 'All'; // Initialize with 'All' or a default
-  bool _isLoading = false;
+  String _selectedCategory = 'All';
 
   @override
   void initState() {
     super.initState();
-    _loadRestaurants();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadRestaurants();
+    });
+
+    // Add a listener to the search controller to automatically update the provider
+    // whenever the text changes (including when cleared internally by SearchBar)
+    _searchController.addListener(() {
+      Provider.of<RestaurantProvider>(
+        context,
+        listen: false,
+      ).setSearchQuery(_searchController.text);
+    });
   }
 
   Future<void> _loadRestaurants() async {
-    setState(() => _isLoading = true);
     try {
       await Provider.of<RestaurantProvider>(
         context,
         listen: false,
-      ).loadRestaurants(); // FIX: Changed from fetchRestaurants to loadRestaurants
+      ).loadRestaurants();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error loading restaurants: $e')),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
     }
   }
 
-  void _onSearchChanged(String query) {
-    Provider.of<RestaurantProvider>(
-      context,
-      listen: false,
-    ).setSearchQuery(query); // FIX: Assuming setSearchQuery
-  }
-
-  void _onCategorySelected(String category) {
-    setState(() {
-      _selectedCategory = category;
-    });
-    Provider.of<RestaurantProvider>(
-      context,
-      listen: false,
-    ).filterByCategory(category); // FIX: Assuming filterByCategory
+  @override
+  void dispose() {
+    _searchController.dispose(); // Dispose the controller
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final restaurantProvider = Provider.of<RestaurantProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Food Delivery'),
+        title: const Text('Food Delivery App'),
+        centerTitle: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.shopping_cart),
             onPressed: () {
-              Navigator.pushNamed(
-                context,
-                '/cart',
-              ); // Assuming you have a '/cart' route
+              // Navigate to CartScreen
             },
           ),
-          // Example for logout, assuming AuthProvider handles this
-          Consumer<AuthProvider>(
-            builder: (context, authProvider, child) {
-              return IconButton(
-                icon: const Icon(Icons.logout),
-                onPressed: () {
-                  authProvider.logout();
-                },
-              );
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              Provider.of<AuthProvider>(context, listen: false).logout();
             },
           ),
         ],
@@ -99,58 +93,74 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(16.0),
               child: CustomSearchBar.SearchBar(
                 controller: _searchController,
-                onChanged: _onSearchChanged,
-                hintText: 'Search restaurants...',
+                // The onChanged callback will be triggered whenever the text changes
+                // including when the internal clear button is pressed in SearchBar.
+                onChanged: (query) {
+                  // The _searchController.text will already be updated here,
+                  // so you could also use _searchController.text directly,
+                  // but 'query' is passed for convenience.
+                  // No need to call setSearchQuery here again if using the listener below.
+                  // If you prefer not to use a listener, you can keep this:
+                  // Provider.of<RestaurantProvider>(context, listen: false).setSearchQuery(query);
+                },
+                // onSubmitted is optional, if you need to trigger a search only on submit
+                // onSubmitted: (query) {
+                //   Provider.of<RestaurantProvider>(context, listen: false).setSearchQuery(query);
+                // },
+                // Remove onSearch and onClear, as they are not part of your SearchBar's API
               ),
             ),
             Consumer<RestaurantProvider>(
-              builder: (context, restaurantProvider, child) {
+              builder: (context, provider, child) {
                 return CategoryFilterWidget.CategoryFilter(
-                  // FIX: Use prefixed CategoryFilter
-                  categories: restaurantProvider.getCategories(),
+                  categories: provider.getCategories(),
                   selectedCategory: _selectedCategory,
-                  onCategorySelected: _onCategorySelected,
+                  onCategorySelected: (category) {
+                    setState(() {
+                      _selectedCategory = category;
+                    });
+                    provider.filterByCategory(category);
+                  },
                 );
               },
             ),
             Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : Consumer<RestaurantProvider>(
-                      builder: (context, restaurantProvider, child) {
-                        if (restaurantProvider.error != null) {
-                          return Center(
-                            child: Text(
-                              'Error: ${restaurantProvider.error}',
-                              style: const TextStyle(color: Colors.red),
-                            ),
-                          );
-                        }
-                        if (restaurantProvider.restaurants.isEmpty) {
-                          return const Center(
-                            child: Text(
-                              'No restaurants found',
-                              style: TextStyle(fontSize: 16),
-                            ),
-                          );
-                        }
+              child: Consumer<RestaurantProvider>(
+                builder: (context, restaurantProvider, child) {
+                  if (restaurantProvider.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (restaurantProvider.error != null) {
+                    return Center(
+                      child: Text(
+                        'Error: ${restaurantProvider.error}',
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    );
+                  }
+                  if (restaurantProvider.filteredRestaurants.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'No restaurants found',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    );
+                  }
 
-                        return ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount:
-                              restaurantProvider.filteredRestaurants.length,
-                          itemBuilder: (context, index) {
-                            final restaurant =
-                                restaurantProvider.filteredRestaurants[index];
-                            return RestaurantCard(
-                              restaurant: restaurant,
-                              onTap: () =>
-                                  _navigateToRestaurantDetail(restaurant),
-                            );
-                          },
-                        );
-                      },
-                    ),
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: restaurantProvider.filteredRestaurants.length,
+                    itemBuilder: (context, index) {
+                      final restaurant =
+                          restaurantProvider.filteredRestaurants[index];
+                      return RestaurantCard(
+                        restaurant: restaurant,
+                        onTap: () => _navigateToRestaurantDetail(restaurant),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),

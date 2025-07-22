@@ -1,12 +1,13 @@
 // lib/providers/auth_provider.dart
+
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import '../models/user_public_profile.dart'; // Make sure this import is correct and UserPublicProfile is defined.
+import '../models/user_public_profile.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
   UserPublicProfile? _user;
-  String? _token; // Added to store the token internally
+  String? _token;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -14,55 +15,58 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  // Corrected isAuthenticated getter
   bool get isAuthenticated => _user != null && _token != null;
 
   AuthProvider() {
-    _loadUserAndToken(); // Renamed from _loadUser to indicate token loading as well
+    // MODIFIED: Call _loadUserAndToken in a post-frame callback
+    // This ensures that the state update happens after the initial build,
+    // preventing setState during build issues when the provider is first instantiated.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUserAndToken();
+    });
   }
 
-  // Changed to load both user and token
   Future<void> _loadUserAndToken() async {
-    _isLoading = true;
-    notifyListeners();
-    // Fetch token first
+    // MODIFIED: Removed the first notifyListeners() here.
+    // The initial loading state will be reflected once this async operation completes.
+    // _isLoading = true; // State is set, but no immediate notification.
+
     _token = await _authService.getToken();
     if (_token != null) {
-      // If token exists, try to fetch the user profile
       try {
-        _user = await _authService.fetchCurrentUser(); // Use fetchCurrentUser
+        _user = await _authService.fetchCurrentUser();
       } catch (e) {
-        // If fetching user fails, perhaps the token is invalid/expired
         _errorMessage = "Failed to load user data: ${e.toString()}";
         _user = null;
-        _token = null; // Clear token if user data can't be fetched
-        await _authService.logout(); // Clear stored token
+        _token = null;
+        await _authService.deleteToken();
+        await _authService.deleteCurrentUser();
       }
+    } else {
+      _user = null;
+      await _authService.deleteCurrentUser();
     }
     _isLoading = false;
-    notifyListeners();
+    notifyListeners(); // Keep this one to update UI after loading is complete
   }
 
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    notifyListeners(); // Keep this to show loading state immediately
 
     try {
-      final Map<String, dynamic> loginResponse = await _authService.login(
-        email,
-        password,
-      );
-      if (loginResponse['success'] == true) {
-        _token = loginResponse['token'];
-        // Assuming loginResponse['user'] contains the UserPublicProfile map
-        _user = UserPublicProfile.fromMap(loginResponse['user']);
-        notifyListeners();
+      final success = await _authService.login(email, password);
+      if (success) {
+        // _authService.login now handles saving token/user.
+        // Reload the current user data into AuthProvider's state.
+        // _loadUserAndToken() will trigger its own notifyListeners() at the end.
+        await _loadUserAndToken();
+        // MODIFIED: Removed redundant notifyListeners() call here
+        // notifyListeners(); // REMOVE THIS LINE
         return true;
       } else {
-        _errorMessage =
-            loginResponse['message'] ??
-            'Login failed. Please check your credentials.';
+        _errorMessage = 'Login failed. Please check your credentials.';
         return false;
       }
     } catch (e) {
@@ -70,24 +74,7 @@ class AuthProvider with ChangeNotifier {
       return false;
     } finally {
       _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> logout() async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-    try {
-      await _authService.logout();
-      _user = null;
-      _token = null;
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = 'Logout failed: ${e.toString()}';
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      notifyListeners(); // Keep this one to update UI (e.g., hide loading)
     }
   }
 
@@ -102,7 +89,7 @@ class AuthProvider with ChangeNotifier {
   }) async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    notifyListeners(); // Notify to show loading state
 
     try {
       final success = await _authService.register(
@@ -115,10 +102,12 @@ class AuthProvider with ChangeNotifier {
         role: role,
       );
       if (success) {
-        // After successful registration, _authService.register should have saved token and user
-        // We need to re-load them into AuthProvider's state
-        await _loadUserAndToken(); // This will fetch the newly saved token and user
-        notifyListeners();
+        // Registration also implies successful authentication and token/user saving.
+        // Reload user and token into AuthProvider's state.
+        // _loadUserAndToken() will trigger its own notifyListeners() at its end.
+        await _loadUserAndToken();
+        // MODIFIED: Removed redundant notifyListeners() call here
+        // notifyListeners(); // REMOVE THIS LINE
         return true;
       } else {
         _errorMessage = 'Registration failed. Please try again.';
@@ -129,39 +118,19 @@ class AuthProvider with ChangeNotifier {
       return false;
     } finally {
       _isLoading = false;
-      notifyListeners();
+      notifyListeners(); // Notify to hide loading state
     }
   }
 
-  Future<bool> changePassword(
-    String currentPassword,
-    String newPassword,
-  ) async {
+  void logout() async {
     _isLoading = true;
-    _errorMessage = null;
     notifyListeners();
-
-    try {
-      // AuthService.changePassword no longer needs token as an argument, it gets it internally
-      final success = await _authService.changePassword(
-        currentPassword,
-        newPassword,
-      );
-      if (success) {
-        _errorMessage = 'Password changed successfully.';
-        return true;
-      } else {
-        _errorMessage =
-            'Failed to change password. Please check your current password.';
-        return false;
-      }
-    } catch (e) {
-      _errorMessage = 'An error occurred: ${e.toString()}';
-      return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+    await _authService.deleteToken();
+    await _authService.deleteCurrentUser();
+    _user = null;
+    _token = null;
+    _isLoading = false;
+    notifyListeners();
   }
 
   void clearErrorMessage() {

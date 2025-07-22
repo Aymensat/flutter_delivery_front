@@ -1,10 +1,11 @@
 class AppConfig {
-  static const String baseUrl = 'YOUR_API_BASE_URL/api';
-  static const String socketUrl = 'YOUR_SOCKET_URL';
+  static const String baseUrl =
+      'http://10.0.2.2:3000/api'; // ✅ Emulator accesses host via 10.0.2.2
+  static const String socketUrl = 'ws://10.0.2.2:3000';
 
   // API Endpoints
-  static const String loginEndpoint = '/auth/login';
-  static const String registerEndpoint = '/auth/register';
+  static const String loginEndpoint = '/users/login';
+  static const String registerEndpoint = '/users/register';
   static const String restaurantsEndpoint = '/restaurants';
   static const String foodsEndpoint = '/food';
   static const String cartEndpoint = '/cart';

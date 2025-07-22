@@ -1,27 +1,19 @@
 // lib/services/auth_service.dart
+
 import 'dart:convert';
-import 'package:flutter/foundation.dart'; // For debugPrint
-import 'package:http/http.dart' as http; // Now actually used
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import '../models/user.dart'; // For the User model used in registration
 import '../models/user_public_profile.dart'; // For UserPublicProfile
 
 class AuthService {
-  final String _baseUrl = AppConfig.baseUrl; // Now used in API calls
+  final String _baseUrl = AppConfig.baseUrl;
   static const String _tokenKey = 'auth_token';
-  static const String _userKey =
-      'user_data'; // Renamed from _userKey to userKey to be public for AuthProvider to access
+  static const String _userKey = 'user_data';
 
-  // Expose _userKey as a static getter for external classes to access
   static String get userKey => _userKey;
-
-  // Initialize service, typically to load initial user data/token
-  Future<void> init() async {
-    // This method can be used to load user data/token on app start
-    // For now, getToken() and getCurrentUser() handle this on demand.
-    // If you need proactive loading, implement it here.
-  }
 
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -33,54 +25,96 @@ class AuthService {
     await prefs.setString(_tokenKey, token);
   }
 
-  Future<void> saveUser(UserPublicProfile user) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      _userKey,
-      jsonEncode(user.toMap()),
-    ); // Assuming UserPublicProfile has a toMap()
-  }
-
-  UserPublicProfile? getCurrentUser() {
-    // This method should return the currently logged-in user's public profile
-    // It should load from SharedPreferences if not already in memory
-    // For now, AuthProvider will manage the in-memory _user.
-    // If you want AuthService to manage it, this method needs logic to read from SharedPreferences.
-    return null; // AuthProvider will handle the in-memory user
-  }
-
-  Future<void> logout() async {
+  Future<void> deleteToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
-    await prefs.remove(_userKey);
-    debugPrint('User logged out and local data cleared.'); // Replaced print
   }
 
-  // Login now points to /users/login
-  Future<Map<String, dynamic>> login(String email, String password) async {
-    final response = await http.post(
-      Uri.parse('$_baseUrl/users/login'), // UPDATED PATH
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email, 'password': password}),
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      await saveToken(data['token']); // Save the token
-      // Assuming 'user' data is returned in the login response
-      if (data['user'] != null) {
-        final userProfile = UserPublicProfile.fromMap(data['user']);
-        await saveUser(userProfile); // Save user data
+  Future<UserPublicProfile?> getCurrentUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = prefs.getString(_userKey);
+    if (userJson != null) {
+      try {
+        final Map<String, dynamic> userDataMap = jsonDecode(userJson);
+        // Ensure that the decoded JSON is indeed a Map before passing to fromMap
+        if (userDataMap is Map<String, dynamic>) {
+          return UserPublicProfile.fromMap(userDataMap);
+        } else {
+          debugPrint('Stored user data is not a valid Map.');
+          await deleteCurrentUser(); // Clear corrupted data
+          return null;
+        }
+      } catch (e) {
+        debugPrint('Error decoding stored user data in getCurrentUser: $e');
+        await deleteCurrentUser(); // Clear corrupted data if parsing fails
+        return null;
       }
-      return {'success': true, 'token': data['token'], 'user': data['user']};
-    } else {
-      final errorData = jsonDecode(response.body);
-      debugPrint('Login failed: ${errorData['message']}'); // Replaced print
-      throw Exception(errorData['message'] ?? 'Login failed');
+    }
+    return null;
+  }
+
+  Future<void> saveCurrentUser(Map<String, dynamic> userData) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_userKey, jsonEncode(userData));
+  }
+
+  Future<void> deleteCurrentUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_userKey);
+  }
+
+  // Login method (REVISED based on Postman response)
+  Future<bool> login(String email, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse(
+          '$_baseUrl/users/login',
+        ), // Corrected endpoint as per your feedback
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+        final String? token = responseData['token'];
+
+        // Construct the user profile map by excluding the 'token' field
+        Map<String, dynamic> userProfileMap = {};
+        responseData.forEach((key, value) {
+          if (key != 'token') {
+            userProfileMap[key] = value;
+          }
+        });
+
+        // Now, check if the token is present and the userProfileMap is valid
+        if (token != null && userProfileMap.isNotEmpty) {
+          await saveToken(token);
+          await saveCurrentUser(
+            userProfileMap,
+          ); // Save the extracted user profile data
+          debugPrint('Login successful. Token and user data saved.');
+          return true;
+        } else {
+          debugPrint('Login response missing token or user profile data.');
+          return false;
+        }
+      } else {
+        final errorData = response.body.isNotEmpty
+            ? jsonDecode(response.body)
+            : {'message': 'Unknown error'};
+        debugPrint(
+          'Login failed: ${errorData['message'] ?? response.statusCode}',
+        );
+        throw Exception(errorData['message'] ?? 'Failed to login');
+      }
+    } catch (e) {
+      debugPrint('An error occurred during login in AuthService: $e');
+      rethrow; // Re-throw to allow AuthProvider to catch and set error message
     }
   }
 
-  // Register a new user
+  // Register method (Also needs adjustment as it likely returns the same structure)
   Future<bool> register({
     required String username,
     required String firstName,
@@ -90,83 +124,63 @@ class AuthService {
     required String phone,
     required String role,
   }) async {
-    final response = await http.post(
-      Uri.parse('$_baseUrl/users/register'), // Ensure this is the correct path
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'username': username,
-        'firstName': firstName,
-        'name': name,
-        'email': email,
-        'password': password,
-        'phone': phone,
-        'role': role,
-      }),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse(
+          '$_baseUrl/users/register',
+        ), // Assuming /users/register endpoint
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'username': username,
+          'firstName': firstName,
+          'name': name,
+          'email': email,
+          'password': password,
+          'phone': phone,
+          'role': role,
+        }),
+      );
 
-    if (response.statusCode == 201) {
-      final data = jsonDecode(response.body);
-      await saveToken(
-        data['token'],
-      ); // Save the token upon successful registration
-      if (data['user'] != null) {
-        final userProfile = UserPublicProfile.fromMap(data['user']);
-        await saveUser(userProfile); // Save user data
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        // 201 Created or 200 OK
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+        final String? token = responseData['token'];
+
+        Map<String, dynamic> userProfileMap = {};
+        responseData.forEach((key, value) {
+          if (key != 'token') {
+            userProfileMap[key] = value;
+          }
+        });
+
+        if (token != null && userProfileMap.isNotEmpty) {
+          await saveToken(token);
+          await saveCurrentUser(userProfileMap);
+          debugPrint('Registration successful. Token and user data saved.');
+          return true;
+        } else {
+          debugPrint(
+            'Registration response missing token or user profile data.',
+          );
+          return false;
+        }
+      } else {
+        final errorData = response.body.isNotEmpty
+            ? jsonDecode(response.body)
+            : {'message': 'Unknown error'};
+        debugPrint(
+          'Registration failed: ${errorData['message'] ?? response.statusCode}',
+        );
+        throw Exception(errorData['message'] ?? 'Failed to register');
       }
-      debugPrint('Registration successful: ${response.body}'); // Replaced print
-      return true;
-    } else {
-      final errorData = jsonDecode(response.body);
-      debugPrint(
-        'Registration failed: ${errorData['message']}',
-      ); // Replaced print
-      throw Exception(errorData['message'] ?? 'Registration failed');
+    } catch (e) {
+      debugPrint('An error occurred during registration in AuthService: $e');
+      rethrow;
     }
   }
 
-  // Method for uploading registration image
-  Future<bool> uploadRegistrationImage(
-    String userId,
-    String imagePath,
-    String token,
-  ) async {
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse('$_baseUrl/users/register/image?userId=$userId'),
-    );
-    request.headers['Authorization'] = 'Bearer $token';
-    request.files.add(await http.MultipartFile.fromPath('image', imagePath));
-    var response = await request.send();
-    return response.statusCode == 201;
-  }
-
-  // NEW method for changing password
-  Future<bool> changePassword(String oldPassword, String newPassword) async {
-    final token = await getToken();
-    if (token == null) throw Exception('Authentication token not found.');
-
-    final response = await http.post(
-      Uri.parse('$_baseUrl/users/change-password'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({
-        'oldPassword': oldPassword,
-        'newPassword': newPassword,
-      }),
-    );
-    if (response.statusCode == 200) {
-      debugPrint('Password changed successfully.'); // Replaced print
-      return true;
-    } else {
-      final errorData = jsonDecode(response.body);
-      debugPrint(
-        'Password change failed: ${errorData['message']}',
-      ); // Replaced print
-      throw Exception(errorData['message'] ?? 'Failed to change password');
-    }
-  }
+  // ... (rest of AuthService remains the same) ...
 
   // Fetches the current user's public profile
   Future<UserPublicProfile> fetchCurrentUser() async {
@@ -174,21 +188,27 @@ class AuthService {
     if (token == null) throw Exception('Authentication token not found.');
 
     final response = await http.get(
-      Uri.parse('$_baseUrl/users/me'),
+      Uri.parse('$_baseUrl/users/me'), // Assuming /users/me endpoint
       headers: {'Authorization': 'Bearer $token'},
     );
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return UserPublicProfile.fromMap(
-        data,
-      ); // Assuming the response body is the UserPublicProfile map
+      // If /users/me returns just the user profile (no token),
+      // then 'data' directly is the map for UserPublicProfile.
+      if (data is Map<String, dynamic>) {
+        return UserPublicProfile.fromMap(data);
+      } else {
+        throw Exception(
+          'Failed to parse user profile: Response is not a valid map.',
+        );
+      }
     } else {
-      final errorData = jsonDecode(response.body);
-      debugPrint(
-        'Failed to fetch current user: ${errorData['message']}',
-      ); // Replaced print
-      throw Exception(errorData['message'] ?? 'Failed to fetch user data');
+      final errorData = response.body.isNotEmpty
+          ? jsonDecode(response.body)
+          : {'message': 'Unknown error'};
+      debugPrint('Failed to fetch current user: ${errorData['message']}');
+      throw Exception(errorData['message'] ?? 'Failed to fetch user profile');
     }
   }
 }
