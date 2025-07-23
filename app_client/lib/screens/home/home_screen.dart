@@ -9,6 +9,7 @@ import '../../widgets/search_bar.dart' as CustomSearchBar;
 import '../../widgets/category_filter.dart'
     as CategoryFilterWidget; // FIX: Use prefix to avoid name conflict
 import 'restaurant_detail_screen.dart';
+import '../cart/cart_screen.dart'; // NEW: Import CartScreen
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -77,7 +78,11 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.shopping_cart),
             onPressed: () {
-              // Navigate to CartScreen
+              // NEW: Navigate to CartScreen
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CartScreen()),
+              );
             },
           ),
           IconButton(

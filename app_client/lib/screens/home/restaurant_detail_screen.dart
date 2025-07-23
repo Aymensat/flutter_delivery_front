@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import '../../models/restaurant.dart';
 import '../../models/food.dart';
 import '../../providers/restaurant_provider.dart';
-import '../../providers/cart_provider.dart';
+import '../../providers/cart_provider.dart'; // Import CartProvider
+import '../../providers/auth_provider.dart'; // Import AuthProvider
 import '../../widgets/rating_stars.dart';
 import 'food_detail_screen.dart';
 
@@ -28,6 +29,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
   @override
   void initState() {
     super.initState();
+    debugPrint(
+      'RestaurantDetailScreen: initState for restaurant: ${widget.restaurant.name}',
+    );
     _tabController = TabController(length: 2, vsync: this);
     _loadFoods(); // Call the food loading method
   }
@@ -42,6 +46,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
   // ===          CORRECTED FOOD LOADING LOGIC (Using RestaurantProvider) ===
   // =======================================================================
   Future<void> _loadFoods() async {
+    debugPrint('RestaurantDetailScreen: _loadFoods called.');
     setState(() {
       _isLoadingFoods = true;
       _foodErrorMessage = null;
@@ -59,6 +64,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
       _foods = await restaurantProvider.fetchFoodsForRestaurant(
         widget.restaurant.id,
       );
+      debugPrint('RestaurantDetailScreen: Foods loaded: ${_foods.length}');
 
       // No need for manual filtering here, as the API call already returns filtered foods.
       // The _foods list is directly updated by the provider's fetchFoodsForRestaurant.
@@ -68,18 +74,24 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
           _foodErrorMessage = 'Failed to load food items: ${e.toString()}';
         });
       }
-      print('Error loading foods: $e'); // Print error to debug console
+      debugPrint(
+        'RestaurantDetailScreen: Error loading foods: $e',
+      ); // Print error to debug console
     } finally {
       if (mounted) {
         setState(() {
           _isLoadingFoods = false;
         });
       }
+      debugPrint('RestaurantDetailScreen: Finished loading foods.');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    debugPrint(
+      'RestaurantDetailScreen: Building for restaurant: ${widget.restaurant.name}',
+    );
     // Construct the full restaurant image URL
     final String? fullRestaurantImageUrl =
         (widget.restaurant.imageUrl != null &&
@@ -91,7 +103,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
         : null;
 
     // Print the URL being attempted for restaurant image
-    print('Restaurant Image URL attempt: $fullRestaurantImageUrl');
+    debugPrint('Restaurant Image URL attempt: $fullRestaurantImageUrl');
 
     return Scaffold(
       appBar: AppBar(
@@ -111,7 +123,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
               width: double.infinity,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                print(
+                debugPrint(
                   'Restaurant Image load failed: $error',
                 ); // Print image loading error
                 return Container(
@@ -241,7 +253,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
                               : null;
 
                           // Print the URL being attempted for food item image
-                          print(
+                          debugPrint(
                             'Food Image URL attempt for ${food.name}: $fullFoodImageUrl',
                           );
 
@@ -269,7 +281,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
                                           height: 100,
                                           fit: BoxFit.cover,
                                           errorBuilder: (context, error, stackTrace) {
-                                            print(
+                                            debugPrint(
                                               'Food Image load failed for ${food.name}: $error',
                                             ); // Print food image loading error
                                             return Container(
@@ -326,10 +338,109 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
                                         ],
                                       ),
                                     ),
-                                    IconButton(
-                                      icon: const Icon(Icons.add_shopping_cart),
-                                      color: Theme.of(context).primaryColor,
-                                      onPressed: () => _addToCart(food),
+                                    Consumer2<CartProvider, AuthProvider>(
+                                      builder: (context, cartProvider, authProvider, child) {
+                                        final existingCartItem = cartProvider
+                                            .getCartItem(food.id);
+                                        final int currentQuantity =
+                                            existingCartItem?.quantity ?? 0;
+
+                                        final bool isDisabled =
+                                            !authProvider.isAuthenticated ||
+                                            cartProvider.isLoading;
+
+                                        debugPrint(
+                                          'RestaurantDetailScreen: Add to Cart button state for ${food.name} - isAuthenticated: ${authProvider.isAuthenticated}, userId: ${authProvider.user?.id}, isLoading: ${cartProvider.isLoading}',
+                                        );
+
+                                        return IconButton(
+                                          icon: cartProvider.isLoading
+                                              ? const SizedBox(
+                                                  width: 20,
+                                                  height: 20,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        color: Colors.white,
+                                                        strokeWidth: 2,
+                                                      ),
+                                                )
+                                              : const Icon(
+                                                  Icons.add_shopping_cart,
+                                                ),
+                                          color: Theme.of(context).primaryColor,
+                                          onPressed: isDisabled
+                                              ? null
+                                              : () async {
+                                                  debugPrint(
+                                                    'RestaurantDetailScreen: Add to Cart button pressed for ${food.name}.',
+                                                  );
+                                                  if (authProvider.user?.id ==
+                                                      null) {
+                                                    debugPrint(
+                                                      'RestaurantDetailScreen: User ID is null, showing login snackbar.',
+                                                    );
+                                                    ScaffoldMessenger.of(
+                                                      context,
+                                                    ).showSnackBar(
+                                                      const SnackBar(
+                                                        content: Text(
+                                                          'Please log in to add items to your cart.',
+                                                        ),
+                                                        backgroundColor:
+                                                            Colors.orange,
+                                                        duration: Duration(
+                                                          seconds: 3,
+                                                        ),
+                                                      ),
+                                                    );
+                                                    return;
+                                                  }
+                                                  await cartProvider.addToCart(
+                                                    food.id,
+                                                    context,
+                                                  ); // Pass context
+                                                  if (cartProvider
+                                                          .errorMessage ==
+                                                      null) {
+                                                    debugPrint(
+                                                      'RestaurantDetailScreen: Add to Cart successful for ${food.name}, showing snackbar.',
+                                                    );
+                                                    ScaffoldMessenger.of(
+                                                      context,
+                                                    ).showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(
+                                                          '${food.name} added to cart! Quantity: ${currentQuantity + 1}',
+                                                        ),
+                                                        duration:
+                                                            const Duration(
+                                                              seconds: 2,
+                                                            ),
+                                                      ),
+                                                    );
+                                                  } else {
+                                                    debugPrint(
+                                                      'RestaurantDetailScreen: Add to Cart failed for ${food.name}, showing error snackbar: ${cartProvider.errorMessage}',
+                                                    );
+                                                    ScaffoldMessenger.of(
+                                                      context,
+                                                    ).showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(
+                                                          'Failed to add ${food.name} to cart: ${cartProvider.errorMessage}',
+                                                        ),
+                                                        backgroundColor:
+                                                            Colors.red,
+                                                        duration:
+                                                            const Duration(
+                                                              seconds: 3,
+                                                            ),
+                                                      ),
+                                                    );
+                                                  }
+                                                },
+                                        );
+                                      },
                                     ),
                                   ],
                                 ),
@@ -366,17 +477,6 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => FoodDetailScreen(food: food)),
-    );
-  }
-
-  void _addToCart(Food food) {
-    // This assumes you have a CartProvider set up
-    // Provider.of<CartProvider>(context, listen: false).addToCart(food);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${food.name} added to cart!'),
-        duration: const Duration(seconds: 2),
-      ),
     );
   }
 }

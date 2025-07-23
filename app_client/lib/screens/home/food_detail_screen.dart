@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/food.dart'; // Make sure this path is correct for your Food model
+import '../../providers/cart_provider.dart'; // Import CartProvider
+import '../../providers/auth_provider.dart'; // Import AuthProvider
 
 class FoodDetailScreen extends StatelessWidget {
   final Food food;
@@ -8,6 +11,7 @@ class FoodDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('FoodDetailScreen: Building for food: ${food.name}');
     // Define the base server URL for images.
     // This should match your backend server's address.
     // For Android Emulator, 'http://10.0.2.2:3000' is typically used.
@@ -149,31 +153,101 @@ class FoodDetailScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.center,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Implement add to cart functionality here
-                  // You'll likely need to use a CartProvider here
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Add ${food.name} to cart functionality here!',
+              child: Consumer2<CartProvider, AuthProvider>(
+                builder: (context, cartProvider, authProvider, child) {
+                  // Check if the item is already in the cart to show current quantity
+                  final existingCartItem = cartProvider.getCartItem(food.id);
+                  final int currentQuantity = existingCartItem?.quantity ?? 0;
+
+                  // Disable button if not authenticated or loading
+                  final bool isDisabled =
+                      !authProvider.isAuthenticated || cartProvider.isLoading;
+
+                  debugPrint(
+                    'FoodDetailScreen: Add to Cart button state - isAuthenticated: ${authProvider.isAuthenticated}, userId: ${authProvider.user?.id}, isLoading: ${cartProvider.isLoading}',
+                  );
+
+                  return ElevatedButton.icon(
+                    onPressed: isDisabled
+                        ? null
+                        : () async {
+                            debugPrint(
+                              'FoodDetailScreen: Add to Cart button pressed.',
+                            );
+                            if (authProvider.user?.id == null) {
+                              debugPrint(
+                                'FoodDetailScreen: User ID is null, showing login snackbar.',
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Please log in to add items to your cart.',
+                                  ),
+                                  backgroundColor: Colors.orange,
+                                  duration: Duration(seconds: 3),
+                                ),
+                              );
+                              return;
+                            }
+                            await cartProvider.addToCart(
+                              food.id,
+                              context,
+                            ); // Pass context
+                            if (cartProvider.errorMessage == null) {
+                              debugPrint(
+                                'FoodDetailScreen: Add to Cart successful, showing snackbar.',
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '${food.name} added to cart! Quantity: ${currentQuantity + 1}',
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            } else {
+                              debugPrint(
+                                'FoodDetailScreen: Add to Cart failed, showing error snackbar: ${cartProvider.errorMessage}',
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Failed to add ${food.name} to cart: ${cartProvider.errorMessage}',
+                                  ),
+                                  backgroundColor: Colors.red,
+                                  duration: const Duration(seconds: 3),
+                                ),
+                              );
+                            }
+                          },
+                    icon: cartProvider.isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(Icons.add_shopping_cart),
+                    label: Text(
+                      currentQuantity > 0
+                          ? 'Add More (Current: $currentQuantity)'
+                          : 'Add to Cart',
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 15,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   );
                 },
-                icon: const Icon(Icons.add_shopping_cart),
-                label: const Text('Add to Cart'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 30,
-                    vertical: 15,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
               ),
             ),
           ],

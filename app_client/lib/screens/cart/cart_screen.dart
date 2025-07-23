@@ -2,7 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/auth_provider.dart'; // Import AuthProvider
 import '../../models/cart.dart'; // Ensure this is imported
+import 'checkout_screen.dart'; // Import CheckoutScreen
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -22,13 +24,17 @@ class _CartScreenState extends State<CartScreen> {
   @override
   void initState() {
     super.initState();
+    debugPrint('CartScreen: initState called.');
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<CartProvider>(context, listen: false).loadCart();
+      debugPrint('CartScreen: initState: addPostFrameCallback triggered.');
+      // Pass context to loadCart
+      Provider.of<CartProvider>(context, listen: false).loadCart(context);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('CartScreen: build method called.');
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Cart'),
@@ -47,10 +53,14 @@ class _CartScreenState extends State<CartScreen> {
       body: Consumer<CartProvider>(
         builder: (context, cartProvider, child) {
           if (cartProvider.isLoading) {
+            debugPrint('CartScreen: Building with loading state.');
             return const Center(child: CircularProgressIndicator());
           }
 
           if (cartProvider.errorMessage != null) {
+            debugPrint(
+              'CartScreen: Building with error state: ${cartProvider.errorMessage}',
+            );
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -65,8 +75,9 @@ class _CartScreenState extends State<CartScreen> {
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
-                        cartProvider.clearError();
-                        cartProvider.loadCart();
+                        cartProvider
+                            .clearErrorMessage(); // Use the correct method name
+                        cartProvider.loadCart(context); // Pass context
                       },
                       child: const Text('Retry'),
                     ),
@@ -77,6 +88,7 @@ class _CartScreenState extends State<CartScreen> {
           }
 
           if (cartProvider.cartItems.isEmpty) {
+            debugPrint('CartScreen: Building with empty cart state.');
             return const Center(
               child: Text(
                 'Your cart is empty. Start adding some delicious food!',
@@ -85,7 +97,9 @@ class _CartScreenState extends State<CartScreen> {
               ),
             );
           }
-
+          debugPrint(
+            'CartScreen: Building with cart items: ${cartProvider.cartItems.length}',
+          );
           return Column(
             children: [
               Expanded(
@@ -159,9 +173,12 @@ class _CartScreenState extends State<CartScreen> {
             onPressed: cartProvider.cartItems.isEmpty
                 ? null
                 : () {
-                    // Handle checkout logic
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Proceeding to checkout!')),
+                    // Navigate to CheckoutScreen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CheckoutScreen(),
+                      ),
                     );
                   },
             style: ElevatedButton.styleFrom(
