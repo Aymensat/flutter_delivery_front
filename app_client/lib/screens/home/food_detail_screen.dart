@@ -17,9 +17,13 @@ class FoodDetailScreen extends StatelessWidget {
 
     // Construct the full image URL.
     // Check if food.imageUrl is not null and not empty before constructing.
+    // MODIFIED: Check if imageUrl is already a full URL before prepending baseServerUrl.
     final String? fullImageUrl =
         (food.imageUrl != null && food.imageUrl!.isNotEmpty)
-        ? '$baseServerUrl${food.imageUrl!}'
+        ? (food.imageUrl!.startsWith('http://') ||
+                  food.imageUrl!.startsWith('https://'))
+              ? food.imageUrl! // It's already a full URL, use as is
+              : '$baseServerUrl${food.imageUrl!}' // It's a relative path, prepend base URL
         : null;
 
     return Scaffold(
@@ -29,83 +33,110 @@ class FoodDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Food Image Display
-            if (fullImageUrl !=
-                null) // Only display Image.network if a valid URL exists
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  fullImageUrl,
-                  height: 200,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  // Handle errors during image loading
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    height: 200,
-                    color: Colors.grey[300],
-                    child: Center(
+            // Food Image
+            if (fullImageUrl != null)
+              Center(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12.0),
+                  child: Image.network(
+                    fullImageUrl,
+                    height: 250,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 250,
+                      width: double.infinity,
+                      color: Colors.grey[300],
                       child: Icon(
                         Icons.broken_image,
                         size: 50,
-                        color: Colors.grey[400],
+                        color: Colors.grey[600],
                       ),
+                      alignment: Alignment.center,
                     ),
                   ),
                 ),
               )
-            else // Display a placeholder if no valid image URL
-              Container(
-                height: 200,
-                width: double.infinity,
-                decoration: BoxDecoration(
+            else
+              Center(
+                child: Container(
+                  height: 250,
+                  width: double.infinity,
                   color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
                   child: Icon(
-                    Icons.fastfood,
-                    size: 80,
-                    color: Colors.grey[400],
+                    Icons.image_not_supported,
+                    size: 50,
+                    color: Colors.grey[600],
+                  ),
+                  alignment: Alignment.center,
+                ),
+              ),
+            const SizedBox(height: 16),
+            // Food Name and Price
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    food.name,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-            const SizedBox(height: 16),
-            Text(
-              food.name,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                Text(
+                  '${food.price.toStringAsFixed(2)} TND', // Display price in TND
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
+            // Food Category
             Text(
-              '\$${food.price.toStringAsFixed(2)}',
-              style: TextStyle(
-                fontSize: 20,
-                color: Theme.of(context).primaryColor,
-                fontWeight: FontWeight.bold,
-              ),
+              food.category,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: Colors.grey[600]),
             ),
             const SizedBox(height: 16),
-            Text(food.description, style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 16),
+            // Food Description
             Text(
-              'Category: ${food.category}',
-              style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+              food.description,
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
-            if (food.calories != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                'Calories: ${food.calories!.toStringAsFixed(0)} kcal',
-                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-              ),
-            ],
             const SizedBox(height: 16),
-            const Text(
+            // Calories (if available)
+            if (food.calories != null && food.calories! > 0)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.local_fire_department,
+                      color: Colors.orange[700],
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${food.calories!.toStringAsFixed(0)} kcal',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+            // Ingredients
+            Text(
               'Ingredients:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Wrap(
-              spacing: 8.0,
-              runSpacing: 4.0,
+              spacing: 8.0, // gap between adjacent chips
+              runSpacing: 4.0, // gap between lines
               children: food.ingredients
                   .map(
                     (ingredient) => Chip(

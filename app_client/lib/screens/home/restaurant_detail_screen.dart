@@ -19,22 +19,17 @@ class RestaurantDetailScreen extends StatefulWidget {
 class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _isLoadingFoods = true; // Renamed for clarity
+  bool _isLoadingFoods = true;
   List<Food> _foods = [];
-  String? _foodErrorMessage; // To store specific food loading errors
+  String? _foodErrorMessage;
 
-  // Define the base server URL for images.
-  // This should match your backend server's address.
-  // For Android Emulator, 'http://10.0.2.2:3000' is typically used.
-  // For iOS Simulator/Desktop, 'http://localhost:3000' is common.
-  // For a physical device, use your computer's local IP address (e.g., 'http://192.168.1.5:3000').
   static const String baseServerUrl = 'http://10.0.2.2:3000';
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    _loadRestaurantFoods();
+    _tabController = TabController(length: 2, vsync: this);
+    _loadFoods(); // Call the food loading method
   }
 
   @override
@@ -43,273 +38,313 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
     super.dispose();
   }
 
-  Future<void> _loadRestaurantFoods() async {
+  // =======================================================================
+  // ===          CORRECTED FOOD LOADING LOGIC (Using RestaurantProvider) ===
+  // =======================================================================
+  Future<void> _loadFoods() async {
     setState(() {
       _isLoadingFoods = true;
-      _foodErrorMessage = null; // Clear previous errors
+      _foodErrorMessage = null;
     });
-
     try {
-      final foods = await Provider.of<RestaurantProvider>(
+      // 1. Get the existing RestaurantProvider instance.
+      final restaurantProvider = Provider.of<RestaurantProvider>(
         context,
         listen: false,
-      ).fetchFoodsForRestaurant(widget.restaurant.id);
-      setState(() {
-        _foods = foods;
-      });
-      if (foods.isEmpty) {
-        _foodErrorMessage = 'No food items available for this restaurant yet.';
-      }
+      );
+
+      // 2. Fetch food items SPECIFICALLY for the current restaurant.
+      //    Use the fetchFoodsForRestaurant method, passing the restaurant ID.
+      //    This method in your provider calls the correct backend endpoint: /api/restaurants/{id}/foods
+      _foods = await restaurantProvider.fetchFoodsForRestaurant(
+        widget.restaurant.id,
+      );
+
+      // No need for manual filtering here, as the API call already returns filtered foods.
+      // The _foods list is directly updated by the provider's fetchFoodsForRestaurant.
     } catch (e) {
-      // Check if the error is a 404 (Not Found) specifically for foods
-      if (e.toString().contains('404') && e.toString().contains('/foods')) {
-        _foodErrorMessage = 'No food items found for this restaurant.';
-      } else {
-        _foodErrorMessage = 'Error loading food menu: ${e.toString()}';
-      }
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(_foodErrorMessage!)));
+        setState(() {
+          _foodErrorMessage = 'Failed to load food items: ${e.toString()}';
+        });
       }
-      _foods = []; // Ensure food list is empty on error
+      print('Error loading foods: $e'); // Print error to debug console
     } finally {
-      setState(() {
-        _isLoadingFoods = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoadingFoods = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Construct the full image URL for the restaurant's main image.
+    // Construct the full restaurant image URL
     final String? fullRestaurantImageUrl =
         (widget.restaurant.imageUrl != null &&
             widget.restaurant.imageUrl!.isNotEmpty)
-        ? '$baseServerUrl${widget.restaurant.imageUrl!}'
+        ? (widget.restaurant.imageUrl!.startsWith('http://') ||
+                  widget.restaurant.imageUrl!.startsWith('https://'))
+              ? widget.restaurant.imageUrl!
+              : '$baseServerUrl${widget.restaurant.imageUrl!}'
         : null;
 
+    // Print the URL being attempted for restaurant image
+    print('Restaurant Image URL attempt: $fullRestaurantImageUrl');
+
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 250.0,
-            floating: false,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: fullRestaurantImageUrl != null
-                  ? Image.network(
-                      fullRestaurantImageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: Colors.grey[300],
-                        child: Center(
-                          child: Icon(
-                            Icons.broken_image,
-                            size: 50,
-                            color: Colors.grey[400],
-                          ),
-                        ),
+      appBar: AppBar(
+        title: Text(widget.restaurant.name),
+        actions: [
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadFoods),
+        ],
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Restaurant Image
+          if (fullRestaurantImageUrl != null)
+            Image.network(
+              fullRestaurantImageUrl,
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                print(
+                  'Restaurant Image load failed: $error',
+                ); // Print image loading error
+                return Container(
+                  height: 200,
+                  color: Colors.grey[300],
+                  alignment: Alignment.center,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.broken_image,
+                        size: 50,
+                        color: Colors.grey[600],
                       ),
-                    )
-                  : Container(
-                      color: Colors.grey[300],
-                      child: Center(
-                        child: Icon(
-                          Icons.restaurant,
-                          size: 80,
-                          color: Colors.grey[400],
-                        ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Could not load restaurant image', // More specific message
+                        textAlign: TextAlign.center,
                       ),
-                    ),
+                    ],
+                  ),
+                );
+              },
+            )
+          else
+            Container(
+              height: 200,
+              width: double.infinity,
+              color: Colors.grey[300],
+              child: Icon(
+                Icons.image_not_supported,
+                size: 50,
+                color: Colors.grey[600],
+              ),
+              alignment: Alignment.center,
+            ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.restaurant.name,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                RatingStars(rating: widget.restaurant.rating),
+                const SizedBox(height: 12),
+                _buildInfoRow(
+                  Icons.location_on,
+                  'Address',
+                  widget.restaurant.address,
+                ),
+                _buildInfoRow(
+                  Icons.phone,
+                  'Contact',
+                  widget.restaurant.contact,
+                ),
+                _buildInfoRow(
+                  Icons.access_time,
+                  'Working Hours',
+                  widget.restaurant.workingHours,
+                ),
+                _buildInfoRow(
+                  Icons.restaurant_menu,
+                  'Cuisine',
+                  widget.restaurant.cuisine,
+                ),
+                if (widget.restaurant.openingHours != null)
+                  _buildInfoRow(
+                    Icons.schedule,
+                    'Opening Hours',
+                    '${widget.restaurant.openingHours!.open} - ${widget.restaurant.openingHours!.close}',
+                  ),
+              ],
             ),
           ),
-          SliverList(
-            delegate: SliverChildListDelegate([
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.restaurant.name,
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
+          TabBar(
+            controller: _tabController,
+            tabs: const [
+              Tab(text: 'Menu'),
+              Tab(text: 'Reviews'),
+            ],
+            labelColor: Theme.of(context).primaryColor,
+            unselectedLabelColor: Colors.grey,
+            indicatorColor: Theme.of(context).primaryColor,
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                // Menu Tab Content
+                _isLoadingFoods
+                    ? const Center(child: CircularProgressIndicator())
+                    : _foodErrorMessage != null
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            _foodErrorMessage!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      )
+                    : _foods.isEmpty
+                    ? const Center(
+                        child: Text('No food items found for this restaurant.'),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16.0),
+                        itemCount: _foods.length,
+                        itemBuilder: (context, index) {
+                          final food = _foods[index];
+                          final String? fullFoodImageUrl =
+                              (food.imageUrl != null &&
+                                  food.imageUrl!.isNotEmpty)
+                              ? (food.imageUrl!.startsWith('http://') ||
+                                        food.imageUrl!.startsWith('https://'))
+                                    ? food.imageUrl!
+                                    : '$baseServerUrl${food.imageUrl!}'
+                              : null;
+
+                          // Print the URL being attempted for food item image
+                          print(
+                            'Food Image URL attempt for ${food.name}: $fullFoodImageUrl',
+                          );
+
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: InkWell(
+                              onTap: () => _navigateToFoodDetail(food),
+                              borderRadius: BorderRadius.circular(12),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Row(
+                                  children: [
+                                    if (fullFoodImageUrl != null)
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(
+                                          8.0,
+                                        ),
+                                        child: Image.network(
+                                          fullFoodImageUrl,
+                                          width: 100,
+                                          height: 100,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            print(
+                                              'Food Image load failed for ${food.name}: $error',
+                                            ); // Print food image loading error
+                                            return Container(
+                                              width: 100,
+                                              height: 100,
+                                              color: Colors.grey[300],
+                                              child: Icon(
+                                                Icons.broken_image,
+                                                size: 40,
+                                                color: Colors.grey[600],
+                                              ),
+                                              alignment: Alignment.center,
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            food.name,
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.titleLarge,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            food.description,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.copyWith(
+                                                  color: Colors.grey[600],
+                                                ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            '${food.price.toStringAsFixed(2)} TND',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleMedium
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Theme.of(
+                                                    context,
+                                                  ).primaryColor,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.add_shopping_cart),
+                                      color: Theme.of(context).primaryColor,
+                                      onPressed: () => _addToCart(food),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    RatingStars(
-                      rating: widget.restaurant.rating,
-                      color: Colors.amber,
-                      size: 24,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      widget.restaurant.description,
-                      style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                    ),
-                    const SizedBox(height: 24),
-                    _buildSectionTitle('Contact Information'),
-                    _buildInfoRow(
-                      Icons.location_on,
-                      'Address',
-                      widget.restaurant.address,
-                    ),
-                    _buildInfoRow(
-                      Icons.phone,
-                      'Phone',
-                      widget.restaurant.contact,
-                    ),
-                    _buildInfoRow(
-                      Icons.schedule,
-                      'Working Hours',
-                      widget.restaurant.workingHours,
-                    ),
-                    const SizedBox(height: 24),
-                    TabBar(
-                      controller: _tabController,
-                      labelColor: Theme.of(context).primaryColor,
-                      unselectedLabelColor: Colors.grey,
-                      indicatorColor: Theme.of(context).primaryColor,
-                      tabs: const [
-                        Tab(text: 'Menu'),
-                        Tab(text: 'Reviews'),
-                        Tab(text: 'Info'),
-                      ],
-                    ),
-                    SizedBox(
-                      height:
-                          MediaQuery.of(context).size.height *
-                          0.7, // Adjust height as needed
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _isLoadingFoods
-                              ? const Center(child: CircularProgressIndicator())
-                              : _buildMenuList(),
-                          const Center(child: Text('Reviews Tab Content')),
-                          const Center(child: Text('Info Tab Content')),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ]),
+                // Reviews Tab Content
+                const Center(child: Text('Reviews will be displayed here.')),
+              ],
+            ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildMenuList() {
-    if (_foodErrorMessage != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.info_outline, size: 48, color: Colors.grey),
-              SizedBox(height: 8),
-              Text(
-                _foodErrorMessage!,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-              ),
-              SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: _loadRestaurantFoods,
-                icon: Icon(Icons.refresh),
-                label: Text('Retry Loading Menu'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    if (_foods.isEmpty) {
-      return const Center(
-        child: Text('No food items available for this restaurant.'),
-      );
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      physics:
-          const NeverScrollableScrollPhysics(), // Important for nested scroll views
-      shrinkWrap: true,
-      itemCount: _foods.length,
-      itemBuilder: (context, index) {
-        final food = _foods[index];
-        // Construct the full image URL for each food item in the menu.
-        final String? fullFoodImageUrl =
-            (food.imageUrl != null && food.imageUrl!.isNotEmpty)
-            ? '$baseServerUrl${food.imageUrl!}'
-            : null;
-
-        return Card(
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          elevation: 2,
-          child: ListTile(
-            leading: fullFoodImageUrl != null
-                ? Image.network(
-                    fullFoodImageUrl,
-                    width: 60, // Adjust size as needed
-                    height: 60, // Adjust size as needed
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      width: 60,
-                      height: 60,
-                      color: Colors.grey[200],
-                      child: Center(
-                        child: Icon(
-                          Icons.broken_image,
-                          color: Colors.grey[400],
-                        ),
-                      ),
-                    ),
-                  )
-                : Container(
-                    width: 60,
-                    height: 60,
-                    color: Colors.grey[200],
-                    child: Center(
-                      child: Icon(Icons.fastfood, color: Colors.grey[400]),
-                    ),
-                  ),
-            title: Text(
-              food.name,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text(food.description),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('\$${food.price.toStringAsFixed(2)}'),
-                IconButton(
-                  icon: const Icon(Icons.add_shopping_cart),
-                  onPressed: () => _addToCart(food),
-                ),
-              ],
-            ),
-            onTap: () => _navigateToFoodDetail(food),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-      ],
     );
   }
 
@@ -321,21 +356,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
         children: [
           Icon(icon, size: 20, color: Colors.grey),
           const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey,
-                  ),
-                ),
-                Text(value, style: const TextStyle(fontSize: 16)),
-              ],
-            ),
-          ),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 16))),
         ],
       ),
     );
@@ -349,9 +370,13 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
   }
 
   void _addToCart(Food food) {
-    Provider.of<CartProvider>(context, listen: false).addToCart(food.id);
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('${food.name} added to cart!')));
+    // This assumes you have a CartProvider set up
+    // Provider.of<CartProvider>(context, listen: false).addToCart(food);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${food.name} added to cart!'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 }

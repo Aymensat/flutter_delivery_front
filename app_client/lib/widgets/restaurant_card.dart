@@ -48,7 +48,7 @@ class RestaurantCard extends StatelessWidget {
                 // Conditionally set the image decoration if a valid URL exists
                 image: fullRestaurantImageUrl != null
                     ? DecorationImage(
-                        image: NetworkImage(fullRestaurantImageUrl),
+                        image: NetworkImage("${restaurant.imageUrl}"),
                         fit: BoxFit.cover,
                         // Handle errors during image loading
                         onError: (exception, stackTrace) {
