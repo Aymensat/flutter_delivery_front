@@ -18,19 +18,12 @@ class AuthProvider with ChangeNotifier {
   bool get isAuthenticated => _user != null && _token != null;
 
   AuthProvider() {
-    // MODIFIED: Call _loadUserAndToken in a post-frame callback
-    // This ensures that the state update happens after the initial build,
-    // preventing setState during build issues when the provider is first instantiated.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadUserAndToken();
     });
   }
 
   Future<void> _loadUserAndToken() async {
-    // MODIFIED: Removed the first notifyListeners() here.
-    // The initial loading state will be reflected once this async operation completes.
-    // _isLoading = true; // State is set, but no immediate notification.
-
     _token = await _authService.getToken();
     if (_token != null) {
       try {
@@ -47,23 +40,18 @@ class AuthProvider with ChangeNotifier {
       await _authService.deleteCurrentUser();
     }
     _isLoading = false;
-    notifyListeners(); // Keep this one to update UI after loading is complete
+    notifyListeners();
   }
 
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners(); // Keep this to show loading state immediately
+    notifyListeners();
 
     try {
       final success = await _authService.login(email, password);
       if (success) {
-        // _authService.login now handles saving token/user.
-        // Reload the current user data into AuthProvider's state.
-        // _loadUserAndToken() will trigger its own notifyListeners() at the end.
         await _loadUserAndToken();
-        // MODIFIED: Removed redundant notifyListeners() call here
-        // notifyListeners(); // REMOVE THIS LINE
         return true;
       } else {
         _errorMessage = 'Login failed. Please check your credentials.';
@@ -74,7 +62,7 @@ class AuthProvider with ChangeNotifier {
       return false;
     } finally {
       _isLoading = false;
-      notifyListeners(); // Keep this one to update UI (e.g., hide loading)
+      notifyListeners();
     }
   }
 
@@ -89,7 +77,7 @@ class AuthProvider with ChangeNotifier {
   }) async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners(); // Notify to show loading state
+    notifyListeners();
 
     try {
       final success = await _authService.register(
@@ -102,12 +90,7 @@ class AuthProvider with ChangeNotifier {
         role: role,
       );
       if (success) {
-        // Registration also implies successful authentication and token/user saving.
-        // Reload user and token into AuthProvider's state.
-        // _loadUserAndToken() will trigger its own notifyListeners() at its end.
         await _loadUserAndToken();
-        // MODIFIED: Removed redundant notifyListeners() call here
-        // notifyListeners(); // REMOVE THIS LINE
         return true;
       } else {
         _errorMessage = 'Registration failed. Please try again.';
@@ -118,7 +101,7 @@ class AuthProvider with ChangeNotifier {
       return false;
     } finally {
       _isLoading = false;
-      notifyListeners(); // Notify to hide loading state
+      notifyListeners();
     }
   }
 
@@ -131,6 +114,61 @@ class AuthProvider with ChangeNotifier {
     _token = null;
     _isLoading = false;
     notifyListeners();
+  }
+
+  // Method to update user profile (text data only)
+  Future<bool> updateUser(Map<String, dynamic> data) async {
+    if (_user == null) {
+      _errorMessage = "No user to update.";
+      return false;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final updatedUser = await _authService.updateUser(_user!.id, data);
+      _user = updatedUser; // Update the local user object
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // NEW: Method to update user profile with an image
+  Future<bool> updateUserWithProfileImage({
+    required Map<String, String> data,
+    required String imagePath,
+  }) async {
+    if (_user == null) {
+      _errorMessage = "No user to update.";
+      return false;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final updatedUser = await _authService.updateUserWithProfileImage(
+        userId: _user!.id,
+        data: data,
+        imagePath: imagePath,
+      );
+      _user = updatedUser; // Update the local user object with the new data
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   void clearErrorMessage() {

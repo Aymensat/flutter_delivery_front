@@ -1,8 +1,6 @@
 // lib/models/user_public_profile.dart
 // Represents the safe, public data for a user returned by most endpoints.
 
-// Removed unused import: import 'package:app_client/models/user.dart';
-
 class UserPublicProfile {
   final String id;
   final String username;
@@ -10,9 +8,9 @@ class UserPublicProfile {
   final String name;
   final String email;
   final String? image;
+  final String phone; // NEW: Added phone number
   final String role;
   final bool isOnline;
-  // Add any other fields from the UserPublicProfile schema
 
   UserPublicProfile({
     required this.id,
@@ -21,6 +19,7 @@ class UserPublicProfile {
     required this.name,
     required this.email,
     this.image,
+    required this.phone, // NEW: Added to constructor
     required this.role,
     required this.isOnline,
   });
@@ -33,6 +32,7 @@ class UserPublicProfile {
       name: map['name'] ?? '',
       email: map['email'] ?? '',
       image: map['image'],
+      phone: map['phone'] ?? '', // NEW: Parsing from map
       role: map['role'] ?? 'client',
       isOnline: map['isOnline'] ?? false,
     );
@@ -46,6 +46,7 @@ class UserPublicProfile {
       'name': name,
       'email': email,
       'image': image,
+      'phone': phone, // NEW: Added to map
       'role': role,
       'isOnline': isOnline,
     };

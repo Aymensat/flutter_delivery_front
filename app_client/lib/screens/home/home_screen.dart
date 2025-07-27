@@ -1,4 +1,5 @@
 // lib/screens/home/home_screen.dart
+import 'package:app_client/screens/auth/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/restaurant.dart';
@@ -89,6 +90,15 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.logout),
             onPressed: () async {
               Provider.of<AuthProvider>(context, listen: false).logout();
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
             },
           ),
         ],

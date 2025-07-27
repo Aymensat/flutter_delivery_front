@@ -103,6 +103,8 @@ class ApiService {
 
     var response = await request.send();
     var responseData = await response.stream.bytesToString();
+    print('Multipart request to $endpoint finished with status code ${response.statusCode}');
+    print('Response data: $responseData');
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return jsonDecode(responseData);

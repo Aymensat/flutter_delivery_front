@@ -7,11 +7,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import '../models/user.dart'; // For the User model used in registration
 import '../models/user_public_profile.dart'; // For UserPublicProfile
+import 'api_service.dart'; // Import ApiService
 
 class AuthService {
   final String _baseUrl = AppConfig.baseUrl;
   static const String _tokenKey = 'auth_token';
   static const String _userKey = 'user_data';
+
+  // FIXED: Use lazy initialization to avoid circular dependency
+  ApiService? _apiService;
+  ApiService get apiService => _apiService ??= ApiService();
 
   static String get userKey => _userKey;
 
@@ -180,8 +185,6 @@ class AuthService {
     }
   }
 
-  // ... (rest of AuthService remains the same) ...
-
   // Fetches the current user's public profile
   Future<UserPublicProfile> fetchCurrentUser() async {
     final token = await getToken();
@@ -209,6 +212,51 @@ class AuthService {
           : {'message': 'Unknown error'};
       debugPrint('Failed to fetch current user: ${errorData['message']}');
       throw Exception(errorData['message'] ?? 'Failed to fetch user profile');
+    }
+  }
+
+  // Method to update user profile with only text data
+  Future<UserPublicProfile> updateUser(
+    String userId,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final response = await apiService.put('/users/$userId', data);
+      final updatedUser = UserPublicProfile.fromMap(response);
+      await saveCurrentUser(response);
+      return updatedUser;
+    } catch (e) {
+      debugPrint('Error updating user in AuthService: $e');
+      rethrow;
+    }
+  }
+
+  // NEW: Method to update user profile with an image
+  Future<UserPublicProfile> updateUserWithProfileImage({
+    required String userId,
+    required Map<String, String> data,
+    required String imagePath,
+  }) async {
+    try {
+      // Use the multipartRequest method from ApiService
+      final response = await apiService.multipartRequest(
+        'PUT', // HTTP method
+        '/users/$userId', // Endpoint
+        data, // Text fields
+        imagePath, // File path
+        'image', // File field name in the form
+      );
+
+      // The API returns the updated user object
+      final updatedUser = UserPublicProfile.fromMap(response);
+
+      // Save the updated user data locally
+      await saveCurrentUser(response);
+
+      return updatedUser;
+    } catch (e) {
+      debugPrint('Error updating user with image in AuthService: $e');
+      rethrow;
     }
   }
 }
