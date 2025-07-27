@@ -35,6 +35,7 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     debugPrint('CartScreen: build method called.');
+    print('CartScreen: baseServerUrl: $baseServerUrl');
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Cart'),
@@ -122,7 +123,6 @@ class _CartScreenState extends State<CartScreen> {
                           listen: false,
                         ).removeFromCart(cartItem.id);
                       },
-                      // Pass the baseServerUrl to the CartItemCard
                       baseServerUrl: baseServerUrl,
                     );
                   },
@@ -269,10 +269,20 @@ class CartItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Construct the full image URL for the cart item's food image.
-    final String? fullFoodImageUrl =
-        (cartItem.food.imageUrl != null && cartItem.food.imageUrl!.isNotEmpty)
-        ? '$baseServerUrl${cartItem.food.imageUrl!}'
-        : null;
+    final cartImageUrl = cartItem.food.imageUrl;
+    String? fullFoodImageUrl;
+    if (cartImageUrl != null && cartImageUrl.isNotEmpty) {
+      if (cartImageUrl.startsWith('http')) {
+        // It's already a full URL
+        fullFoodImageUrl = cartImageUrl;
+      } else {
+        // It's a relative path, so prepend the base server URL
+        fullFoodImageUrl = '$baseServerUrl$cartImageUrl';
+      }
+    } else {
+      fullFoodImageUrl = null;
+    }
+    print('CartItemCard: fullFoodImageUrl: $fullFoodImageUrl');
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
