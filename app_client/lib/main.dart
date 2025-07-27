@@ -5,6 +5,7 @@ import 'config/theme.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
 import 'providers/restaurant_provider.dart';
+import 'providers/review_provider.dart';
 // import 'providers/order_provider.dart'; // FIX: Remove unused import for now if OrderProvider isn't ready
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -34,6 +35,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => RestaurantProvider()),
+        ChangeNotifierProvider(create: (_) => ReviewProvider()),
         // FIX: If OrderProvider is not yet implemented or causing errors,
         // comment it out or ensure it's correctly defined.
         // ChangeNotifierProvider(create: (_) => OrderProvider()),
