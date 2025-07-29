@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/food.dart'; // Make sure this path is correct for your Food model
 import '../../providers/cart_provider.dart'; // Import CartProvider
 import '../../providers/auth_provider.dart'; // Import AuthProvider
+import '../cart/cart_screen.dart'; // Import CartScreen
 
 class FoodDetailScreen extends StatelessWidget {
   final Food food;
@@ -203,6 +204,14 @@ class FoodDetailScreen extends StatelessWidget {
                                     '${food.name} added to cart! Quantity: ${currentQuantity + 1}',
                                   ),
                                   duration: const Duration(seconds: 2),
+                                ),
+                              );
+
+                              // Navigate to cart screen after successfully adding item
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const CartScreen(),
                                 ),
                               );
                             } else {

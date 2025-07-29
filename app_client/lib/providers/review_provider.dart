@@ -1,4 +1,3 @@
-
 // lib/providers/review_provider.dart
 
 import 'package:flutter/material.dart';
@@ -21,7 +20,9 @@ class ReviewProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _reviews[restaurantId] = await _reviewService.getReviewsForRestaurant(restaurantId);
+      _reviews[restaurantId] = await _reviewService.getReviewsForRestaurant(
+        restaurantId,
+      );
     } catch (e) {
       _errorMessage = e.toString();
     } finally {

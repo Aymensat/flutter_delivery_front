@@ -7,7 +7,7 @@ class SearchBar extends StatefulWidget {
   final Function(String)? onSubmitted;
 
   const SearchBar({
-    required this.controller,
+    required this.controller, // This controller should be used
     super.key,
     this.hintText = 'Search restaurants or food...',
     required this.onChanged,
@@ -19,12 +19,31 @@ class SearchBar extends StatefulWidget {
 }
 
 class _SearchBarState extends State<SearchBar> {
-  final TextEditingController _controller = TextEditingController();
+  // Removed the internal _controller.
+  // We will now use widget.controller directly.
+
+  @override
+  void initState() {
+    super.initState();
+    // Add a listener to the passed controller to rebuild the widget
+    // when the text changes (e.g., for showing/hiding the clear icon).
+    widget.controller.addListener(_onControllerTextChanged);
+  }
 
   @override
   void dispose() {
-    _controller.dispose();
+    // Remove the listener when the widget is disposed.
+    widget.controller.removeListener(_onControllerTextChanged);
+    // No need to dispose widget.controller here, as it's managed by the parent.
     super.dispose();
+  }
+
+  // A method to trigger a rebuild when the controller's text changes.
+  void _onControllerTextChanged() {
+    setState(() {
+      // The state change will cause the build method to be re-run,
+      // updating the visibility of the clear icon.
+    });
   }
 
   @override
@@ -32,18 +51,23 @@ class _SearchBarState extends State<SearchBar> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: TextField(
-        controller: _controller,
+        controller:
+            widget.controller, // Use the controller passed from the parent
         onChanged: widget.onChanged,
         onSubmitted: widget.onSubmitted,
         decoration: InputDecoration(
           hintText: widget.hintText,
           prefixIcon: const Icon(Icons.search),
-          suffixIcon: _controller.text.isNotEmpty
+          suffixIcon:
+              widget
+                  .controller
+                  .text
+                  .isNotEmpty // Check the passed controller's text
               ? IconButton(
                   icon: const Icon(Icons.clear),
                   onPressed: () {
-                    _controller.clear();
-                    widget.onChanged('');
+                    widget.controller.clear(); // Clear the passed controller
+                    widget.onChanged(''); // Notify parent of the clear
                   },
                 )
               : null,

@@ -9,7 +9,9 @@ class RestaurantProvider with ChangeNotifier {
 
   List<Restaurant> _restaurants = [];
   List<Restaurant> _filteredRestaurants = [];
-  List<Food> _foods = [];
+  List<Food> _allFoods = []; // To store all food items for searching
+  List<Food> _restaurantSpecificFoods =
+      []; // Holds foods for a single restaurant detail view
   Restaurant? _selectedRestaurant;
   bool _isLoading = false;
   String? _error;
@@ -19,7 +21,7 @@ class RestaurantProvider with ChangeNotifier {
   // Getters
   List<Restaurant> get restaurants => _restaurants;
   List<Restaurant> get filteredRestaurants => _filteredRestaurants;
-  List<Food> get foods => _foods;
+  List<Food> get foods => _restaurantSpecificFoods;
   Restaurant? get selectedRestaurant => _selectedRestaurant;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -28,64 +30,89 @@ class RestaurantProvider with ChangeNotifier {
 
   void setSearchQuery(String query) {
     _searchQuery = query;
-    _applyFilters(); // Call _applyFilters to update filteredRestaurants based on the new query
-    notifyListeners(); // Notify listeners that the state has changed
+    _applyFilters();
+    // No need to call notifyListeners() here as _applyFilters does it.
   }
 
-  // Load restaurants
   Future<void> loadRestaurants({double? lat, double? lon}) async {
     _isLoading = true;
     _error = null;
-    // Defer notifyListeners to avoid calling during build if loadRestaurants is called from initState
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
+      if (hasListeners) {
+        notifyListeners();
+      }
     });
 
     try {
-      _restaurants = await _apiService.getRestaurants(lat: lat, lon: lon);
+      final results = await Future.wait([
+        _apiService.getRestaurants(lat: lat, lon: lon).catchError((e, s) {
+          print('--- CRITICAL ERROR: Failed to fetch restaurants ---');
+          print(e);
+          print(s);
+          print('---------------------------------------------------');
+          _error = 'Could not load restaurants. Please try again later.';
+          return <Restaurant>[];
+        }),
+        _apiService.getFoods().catchError((e, s) {
+          print('--- WARNING: Failed to fetch food data for search ---');
+          print(
+            'The app will function, but food search will be disabled due to this error.',
+          );
+          print(e);
+          print(s);
+          print('-------------------------------------------------------');
+          return <Food>[];
+        }),
+      ]);
+
+      _restaurants = results[0] as List<Restaurant>;
+      _allFoods = results[1] as List<Food>;
+    } catch (e, s) {
+      _error = "An unexpected error occurred while loading data.";
+      print('--- UNEXPECTED FALLBACK ERROR in loadRestaurants ---');
+      print(e);
+      print(s);
+      print('----------------------------------------------------');
+      _restaurants = [];
+      _allFoods = [];
+    } finally {
       _filteredRestaurants = _restaurants;
       _applyFilters();
-
-      if (_restaurants.isNotEmpty) {
-        print(
-          'RestaurantProvider: Fetched first restaurant imageUrl: ${_restaurants.first.imageUrl}',
-        );
-      }
-    } catch (e) {
-      _error = e.toString();
-    } finally {
       _isLoading = false;
-      notifyListeners(); // This notifyListeners is fine as it's after the async operation
+      if (hasListeners) {
+        notifyListeners();
+      }
     }
   }
 
+  // FIX: Wrapped initial notifyListeners in addPostFrameCallback to prevent build errors.
   Future<List<Food>> fetchFoodsForRestaurant(String restaurantId) async {
     _isLoading = true;
     _error = null;
-    // Defer notifyListeners to avoid calling during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
+      if (hasListeners) notifyListeners();
     });
 
     try {
-      _foods = await _apiService.getFoodsByRestaurantId(restaurantId);
-      return _foods;
+      _restaurantSpecificFoods = await _apiService.getFoodsByRestaurantId(
+        restaurantId,
+      );
+      return _restaurantSpecificFoods;
     } catch (e) {
       _error = e.toString();
-      rethrow; // Re-throw to be caught by the UI
+      rethrow;
     } finally {
       _isLoading = false;
-      notifyListeners(); // This notifyListeners is fine as it's after the async operation
+      if (hasListeners) notifyListeners();
     }
   }
 
-  // Load restaurant by ID
+  // FIX: Wrapped initial notifyListeners in addPostFrameCallback to prevent build errors.
   Future<void> loadRestaurantById(String id) async {
     _isLoading = true;
     _error = null;
-    // Defer notifyListeners to avoid calling during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
+      if (hasListeners) notifyListeners();
     });
 
     try {
@@ -94,62 +121,63 @@ class RestaurantProvider with ChangeNotifier {
       _error = e.toString();
     } finally {
       _isLoading = false;
-      notifyListeners();
+      if (hasListeners) notifyListeners();
     }
   }
 
-  // Load foods
-  Future<void> loadFoods() async {
-    _isLoading = true;
-    _error = null;
-    // Defer notifyListeners to avoid calling during build
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
-    });
-
-    try {
-      _foods = await _apiService.getFoods();
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  // Search restaurants
   void searchRestaurants(String query) {
     _searchQuery = query;
     _applyFilters();
-    notifyListeners();
   }
 
-  // Filter by category
   void filterByCategory(String category) {
     _selectedCategory = category;
     _applyFilters();
-    notifyListeners();
   }
 
-  // Apply filters
   void _applyFilters() {
-    _filteredRestaurants = _restaurants.where((restaurant) {
-      // Search filter
-      bool matchesSearch =
-          _searchQuery.isEmpty ||
-          restaurant.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          restaurant.cuisine.toLowerCase().contains(_searchQuery.toLowerCase());
+    List<Restaurant> tempRestaurants = _restaurants;
 
-      // Category filter
-      bool matchesCategory =
-          _selectedCategory == 'All' ||
-          restaurant.cuisine.toLowerCase() == _selectedCategory.toLowerCase();
+    if (_selectedCategory != 'All') {
+      tempRestaurants = tempRestaurants.where((restaurant) {
+        return restaurant.cuisine.toLowerCase() ==
+            _selectedCategory.toLowerCase();
+      }).toList();
+    }
 
-      return matchesSearch && matchesCategory;
-    }).toList();
+    if (_searchQuery.isNotEmpty) {
+      final query = _searchQuery.toLowerCase();
+      tempRestaurants = tempRestaurants.where((restaurant) {
+        try {
+          final bool matchesRestaurantInfo =
+              restaurant.name.toLowerCase().contains(query) ||
+              restaurant.cuisine.toLowerCase().contains(query);
+
+          // This will only work if the _allFoods list was successfully loaded.
+          final bool matchesFood = _allFoods.any(
+            (food) =>
+                food.restaurant == restaurant.id &&
+                food.name.toLowerCase().contains(query),
+          );
+
+          return matchesRestaurantInfo || matchesFood;
+        } catch (e, s) {
+          print('--- FILTERING ERROR ---');
+          print(
+            'Error processing restaurant "${restaurant.name}" (ID: ${restaurant.id}): $e',
+          );
+          print('Stack trace: $s');
+          print('-----------------------');
+          return false;
+        }
+      }).toList();
+    }
+
+    _filteredRestaurants = tempRestaurants;
+    // Notify listeners after filters are applied.
+    if (hasListeners) notifyListeners();
   }
 
-  // Get restaurant categories
   List<String> getCategories() {
     Set<String> categories = {'All'};
     for (var restaurant in _restaurants) {
@@ -158,21 +186,17 @@ class RestaurantProvider with ChangeNotifier {
     return categories.toList();
   }
 
-  // Clear filters
   void clearFilters() {
     _searchQuery = '';
     _selectedCategory = 'All';
-    _filteredRestaurants = _restaurants;
-    notifyListeners();
+    _applyFilters();
   }
 
-  // Clear error
   void clearError() {
     _error = null;
-    notifyListeners();
+    if (hasListeners) notifyListeners();
   }
 
-  // Refresh data
   Future<void> refresh({double? lat, double? lon}) async {
     await loadRestaurants(lat: lat, lon: lon);
   }

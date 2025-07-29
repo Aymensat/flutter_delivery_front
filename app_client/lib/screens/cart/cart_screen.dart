@@ -40,6 +40,13 @@ class _CartScreenState extends State<CartScreen> {
       appBar: AppBar(
         title: const Text('My Cart'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.home),
+            onPressed: () {
+              // Navigate back to home screen
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+          ),
           Consumer<CartProvider>(
             builder: (context, cartProvider, child) {
               if (cartProvider.cartItems.isEmpty) return const SizedBox();

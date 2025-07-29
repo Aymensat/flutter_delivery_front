@@ -1,5 +1,6 @@
 // lib/models/restaurant.dart
 import 'package:flutter/foundation.dart'; // For @required if needed
+import 'food.dart'; // Import the Food model
 
 class Restaurant {
   final String id;
@@ -18,6 +19,7 @@ class Restaurant {
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
+  List<Food>? foods; // Add this property to hold associated food items
 
   Restaurant({
     required this.id,
@@ -36,9 +38,22 @@ class Restaurant {
     required this.isActive,
     required this.createdAt,
     required this.updatedAt,
+    this.foods, // Initialize the foods property in the constructor
   });
 
   factory Restaurant.fromJson(Map<String, dynamic> json) {
+    // Safely parse imageUrl:
+    // If json['imageUrl'] is a String, use it directly.
+    // If it's a Map, try to extract a 'url' key from it.
+    // Otherwise, it's null.
+    String? parsedImageUrl;
+    if (json['imageUrl'] is String) {
+      parsedImageUrl = json['imageUrl'] as String;
+    } else if (json['imageUrl'] is Map) {
+      parsedImageUrl =
+          (json['imageUrl'] as Map<String, dynamic>)['url'] as String?;
+    }
+
     return Restaurant(
       id: json['_id'] as String? ?? '', // Robust null handling
       name: json['name'] as String? ?? '',
@@ -59,7 +74,7 @@ class Restaurant {
       rating:
           (json['rating'] as num?)?.toDouble() ??
           0.0, // Handle null and convert
-      imageUrl: json['imageUrl'] as String?, // Directly cast to String?
+      imageUrl: parsedImageUrl, // Use the safely parsed imageUrl
       openingHours: json['openingHours'] != null
           ? OpeningHours.fromJson(json['openingHours'] as Map<String, dynamic>)
           : null, // Conditionally parse OpeningHours
@@ -71,6 +86,8 @@ class Restaurant {
       updatedAt:
           DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
           DateTime.now(), // Safe parsing
+      // foods property is not parsed from JSON here, it's populated by RestaurantProvider
+      foods: null, // Initialize as null, will be populated by provider
     );
   }
 
@@ -92,6 +109,7 @@ class Restaurant {
       'isActive': isActive,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      // foods is not part of the JSON serialization as it's a derived property
     };
   }
 }
