@@ -122,7 +122,7 @@ class _CartScreenState extends State<CartScreen> {
                         Provider.of<CartProvider>(
                           context,
                           listen: false,
-                        ).updateCartItemQuantity(cartItem.id, newQuantity);
+                        ).updateCartItem(cartItem.id, newQuantity, cartItem.excludedIngredients);
                       },
                       onRemove: () {
                         Provider.of<CartProvider>(
@@ -353,6 +353,13 @@ class CartItemCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
+                  if (cartItem.excludedIngredients.isNotEmpty)
+                    Text(
+                      'Excluding: ${cartItem.excludedIngredients.join(', ')}',
+                      style: TextStyle(color: Colors.grey[600], fontStyle: FontStyle.italic),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

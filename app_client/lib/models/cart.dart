@@ -2,18 +2,20 @@
 import 'package:app_client/models/food.dart';
 import 'package:app_client/models/user_public_profile.dart';
 
-// This model directly matches the `Cart` schema in `openapi -v2.3.yaml`
+// This model directly matches the `Cart` schema in `openapi-v4.yaml`
 class Cart {
   final String id;
-  final UserPublicProfile user; // CHANGED from String to UserPublicProfile
-  final Food food; // CHANGED from String to Food
+  final UserPublicProfile user;
+  final Food food;
   final int quantity;
+  final List<String> excludedIngredients; // NEW
 
   Cart({
     required this.id,
     required this.user,
     required this.food,
     required this.quantity,
+    this.excludedIngredients = const [], // NEW
   });
 
   double get totalPrice => food.price * quantity;
@@ -23,10 +25,13 @@ class Cart {
   factory Cart.fromJson(Map<String, dynamic> json) {
     return Cart(
       id: json['_id'],
-      // The API now returns the full objects, so we parse them directly
       user: UserPublicProfile.fromMap(json['user']),
       food: Food.fromJson(json['food']),
       quantity: json['quantity'],
+      // NEW: Handle optional excludedIngredients
+      excludedIngredients: json['excludedIngredients'] != null
+          ? List<String>.from(json['excludedIngredients'])
+          : [],
     );
   }
 
@@ -36,6 +41,7 @@ class Cart {
       'user': user.toMap(),
       'food': food.toJson(),
       'quantity': quantity,
+      'excludedIngredients': excludedIngredients, // NEW
     };
   }
 }

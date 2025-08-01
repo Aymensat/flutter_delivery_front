@@ -5,14 +5,21 @@ import '../../providers/cart_provider.dart'; // Import CartProvider
 import '../../providers/auth_provider.dart'; // Import AuthProvider
 import '../cart/cart_screen.dart'; // Import CartScreen
 
-class FoodDetailScreen extends StatelessWidget {
+class FoodDetailScreen extends StatefulWidget {
   final Food food;
 
   const FoodDetailScreen({super.key, required this.food});
 
   @override
+  State<FoodDetailScreen> createState() => _FoodDetailScreenState();
+}
+
+class _FoodDetailScreenState extends State<FoodDetailScreen> {
+  List<String> _excludedIngredients = [];
+
+  @override
   Widget build(BuildContext context) {
-    debugPrint('FoodDetailScreen: Building for food: ${food.name}');
+    debugPrint('FoodDetailScreen: Building for food: ${widget.food.name}');
     // Define the base server URL for images.
     // This should match your backend server's address.
     // For Android Emulator, 'http://10.0.2.2:3000' is typically used.
@@ -21,18 +28,18 @@ class FoodDetailScreen extends StatelessWidget {
     const String baseServerUrl = 'http://10.0.2.2:3000';
 
     // Construct the full image URL.
-    // Check if food.imageUrl is not null and not empty before constructing.
+    // Check if widget.food.imageUrl is not null and not empty before constructing.
     // MODIFIED: Check if imageUrl is already a full URL before prepending baseServerUrl.
     final String? fullImageUrl =
-        (food.imageUrl != null && food.imageUrl!.isNotEmpty)
-        ? (food.imageUrl!.startsWith('http://') ||
-                  food.imageUrl!.startsWith('https://'))
-              ? food.imageUrl! // It's already a full URL, use as is
-              : '$baseServerUrl${food.imageUrl!}' // It's a relative path, prepend base URL
+        (widget.food.imageUrl != null && widget.food.imageUrl!.isNotEmpty)
+        ? (widget.food.imageUrl!.startsWith('http://') ||
+                  widget.food.imageUrl!.startsWith('https://'))
+              ? widget.food.imageUrl! // It's already a full URL, use as is
+              : '$baseServerUrl${widget.food.imageUrl!}' // It's a relative path, prepend base URL
         : null;
 
     return Scaffold(
-      appBar: AppBar(title: Text(food.name)),
+      appBar: AppBar(title: Text(widget.food.name)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -83,14 +90,14 @@ class FoodDetailScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    food.name,
+                    widget.food.name,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
                 Text(
-                  '${food.price.toStringAsFixed(2)} TND', // Display price in TND
+                  '${widget.food.price.toStringAsFixed(2)} TND', // Display price in TND
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: Theme.of(context).primaryColor,
                     fontWeight: FontWeight.bold,
@@ -101,7 +108,7 @@ class FoodDetailScreen extends StatelessWidget {
             const SizedBox(height: 8),
             // Food Category
             Text(
-              food.category,
+              widget.food.category,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(color: Colors.grey[600]),
@@ -109,12 +116,12 @@ class FoodDetailScreen extends StatelessWidget {
             const SizedBox(height: 16),
             // Food Description
             Text(
-              food.description,
+              widget.food.description,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 16),
             // Calories (if available)
-            if (food.calories != null && food.calories! > 0)
+            if (widget.food.calories != null && widget.food.calories! > 0)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),
                 child: Row(
@@ -125,7 +132,7 @@ class FoodDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '${food.calories!.toStringAsFixed(0)} kcal',
+                      '${widget.food.calories!.toStringAsFixed(0)} kcal',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
@@ -133,23 +140,32 @@ class FoodDetailScreen extends StatelessWidget {
               ),
             // Ingredients
             Text(
-              'Ingredients:',
+              'Exclude Ingredients:',
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 8.0, // gap between adjacent chips
-              runSpacing: 4.0, // gap between lines
-              children: food.ingredients
-                  .map(
-                    (ingredient) => Chip(
-                      label: Text(ingredient),
-                      backgroundColor: Colors.blueGrey[50],
-                    ),
-                  )
-                  .toList(),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: widget.food.ingredients.length,
+              itemBuilder: (context, index) {
+                final ingredient = widget.food.ingredients[index];
+                return CheckboxListTile(
+                  title: Text(ingredient),
+                  value: _excludedIngredients.contains(ingredient),
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value == true) {
+                        _excludedIngredients.add(ingredient);
+                      } else {
+                        _excludedIngredients.remove(ingredient);
+                      }
+                    });
+                  },
+                );
+              },
             ),
             const SizedBox(height: 16),
             Align(
@@ -157,7 +173,7 @@ class FoodDetailScreen extends StatelessWidget {
               child: Consumer2<CartProvider, AuthProvider>(
                 builder: (context, cartProvider, authProvider, child) {
                   // Check if the item is already in the cart to show current quantity
-                  final existingCartItem = cartProvider.getCartItem(food.id);
+                  final existingCartItem = cartProvider.getCartItem(widget.food.id);
                   final int currentQuantity = existingCartItem?.quantity ?? 0;
 
                   // Disable button if not authenticated or loading
@@ -191,8 +207,9 @@ class FoodDetailScreen extends StatelessWidget {
                               return;
                             }
                             await cartProvider.addToCart(
-                              food.id,
+                              widget.food.id,
                               context,
+                              excludedIngredients: _excludedIngredients,
                             ); // Pass context
                             if (cartProvider.errorMessage == null) {
                               debugPrint(
@@ -201,7 +218,7 @@ class FoodDetailScreen extends StatelessWidget {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    '${food.name} added to cart! Quantity: ${currentQuantity + 1}',
+                                    '${widget.food.name} added to cart! Quantity: ${currentQuantity + 1}',
                                   ),
                                   duration: const Duration(seconds: 2),
                                 ),
@@ -221,7 +238,7 @@ class FoodDetailScreen extends StatelessWidget {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'Failed to add ${food.name} to cart: ${cartProvider.errorMessage}',
+                                    'Failed to add ${widget.food.name} to cart: ${cartProvider.errorMessage}',
                                   ),
                                   backgroundColor: Colors.red,
                                   duration: const Duration(seconds: 3),

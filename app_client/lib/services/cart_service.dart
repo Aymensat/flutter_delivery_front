@@ -25,17 +25,19 @@ class CartService {
     }
   }
 
-  // Modified: Accept userId as an argument
+  // Modified: Accept userId and excludedIngredients as arguments
   Future<Cart> addItemToCart({
     required String foodId,
     int quantity = 1,
     required String userId, // Now explicitly required
+    List<String> excludedIngredients = const [],
   }) async {
     try {
       final response = await _apiService.post('/cart', {
         'foodId': foodId,
         'quantity': quantity,
         'user': userId, // Use the provided userId
+        'excludedIngredients': excludedIngredients,
       });
       return Cart.fromJson(response);
     } catch (e) {
@@ -46,19 +48,20 @@ class CartService {
     }
   }
 
-  Future<Cart> updateCartItemQuantity(String cartItemId, int quantity) async {
+  Future<Cart> updateCartItem(
+    String cartItemId,
+    int quantity,
+    List<String> excludedIngredients,
+  ) async {
     try {
-      // The backend PUT /cart/:id route uses 'protect' middleware,
-      // so it extracts userId from the token. We don't need to send 'user' in the body here.
       final response = await _apiService.put('/cart/$cartItemId', {
         'quantity': quantity,
+        'excludedIngredients': excludedIngredients,
       });
       return Cart.fromJson(response);
     } catch (e) {
-      print('Failed to update cart item quantity: $e');
-      throw Exception(
-        'Failed to update cart item: $e',
-      ); // Include error for better debugging
+      print('Failed to update cart item: $e');
+      throw Exception('Failed to update cart item: $e');
     }
   }
 

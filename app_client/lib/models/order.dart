@@ -215,7 +215,7 @@ class OrderItem {
   final double price;
   final int quantity;
   final double totalPrice;
-  final List<String>? specialInstructions;
+  final List<String> excludedIngredients; // NEW
 
   OrderItem({
     required this.id,
@@ -225,7 +225,7 @@ class OrderItem {
     required this.price,
     required this.quantity,
     required this.totalPrice,
-    this.specialInstructions,
+    this.excludedIngredients = const [], // NEW
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
@@ -237,9 +237,10 @@ class OrderItem {
       price: (json['price'] ?? 0.0).toDouble(),
       quantity: json['quantity'] ?? 1,
       totalPrice: (json['totalPrice'] ?? 0.0).toDouble(),
-      specialInstructions: json['specialInstructions'] != null
-          ? List<String>.from(json['specialInstructions'])
-          : null,
+      // NEW: Handle optional excludedIngredients
+      excludedIngredients: json['excludedIngredients'] != null
+          ? List<String>.from(json['excludedIngredients'])
+          : [],
     );
   }
 
@@ -252,7 +253,7 @@ class OrderItem {
       'price': price,
       'quantity': quantity,
       'totalPrice': totalPrice,
-      'specialInstructions': specialInstructions,
+      'excludedIngredients': excludedIngredients, // NEW
     };
   }
 
@@ -264,7 +265,7 @@ class OrderItem {
     double? price,
     int? quantity,
     double? totalPrice,
-    List<String>? specialInstructions,
+    List<String>? excludedIngredients,
   }) {
     return OrderItem(
       id: id ?? this.id,
@@ -274,7 +275,7 @@ class OrderItem {
       price: price ?? this.price,
       quantity: quantity ?? this.quantity,
       totalPrice: totalPrice ?? this.totalPrice,
-      specialInstructions: specialInstructions ?? this.specialInstructions,
+      excludedIngredients: excludedIngredients ?? this.excludedIngredients,
     );
   }
 

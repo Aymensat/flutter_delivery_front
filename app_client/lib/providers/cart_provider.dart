@@ -69,7 +69,7 @@ class CartProvider with ChangeNotifier {
   }
 
   // Modified: Pass BuildContext to get user ID
-  Future<void> addToCart(String foodId, BuildContext context) async {
+  Future<void> addToCart(String foodId, BuildContext context, {List<String> excludedIngredients = const []}) async {
     debugPrint('CartProvider: addToCart called for foodId: $foodId');
     _isLoading = true;
     _errorMessage = null;
@@ -98,43 +98,22 @@ class CartProvider with ChangeNotifier {
         );
         // Item exists, update quantity
         final existingCartItem = _cartItems[existingCartItemIndex];
-        updatedItem = await _cartService.updateCartItemQuantity(
+        updatedItem = await _cartService.updateCartItem(
           existingCartItem.id,
           existingCartItem.quantity + 1,
+          existingCartItem.excludedIngredients,
         );
         _cartItems[existingCartItemIndex] = updatedItem;
       } else {
         debugPrint(
           'CartProvider: addToCart: Item not in cart, adding new item.',
         );
-        // Item does not exist, add new
-        // Create a minimal Food object for the Cart constructor's placeholder
-        // This Food object will be replaced by the fully populated one from the backend response.
-        // The minimalFood object is not actually used in the addItemToCart call,
-        // it was part of a previous approach for the orElse clause.
-        // It's safe to remove this minimalFood creation if it's not used elsewhere.
-        // For clarity, I'm keeping it commented out but it's not strictly necessary for the current logic.
-        /*
-        final Food minimalFood = Food(
-          id: foodId,
-          name: '', // Placeholder
-          description: '', // Placeholder
-          category: '', // Placeholder
-          ingredients: [], // Placeholder
-          price: 0.0, // Placeholder
-          restaurant: '', // Placeholder
-          restaurantDetails:
-              RestaurantDetails(name: '', address: '', contact: ''), // Placeholder
-          ratings: [], // Placeholder
-          createdAt: DateTime.now(), // Placeholder
-          updatedAt: DateTime.now(), // Placeholder
-        );
-        */
-
+        
         updatedItem = await _cartService.addItemToCart(
           foodId: foodId,
           quantity: 1,
           userId: currentUser.id, // Pass userId string
+          excludedIngredients: excludedIngredients,
         );
         _cartItems.add(updatedItem);
       }
@@ -151,9 +130,9 @@ class CartProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateCartItemQuantity(String cartItemId, int quantity) async {
+  Future<void> updateCartItem(String cartItemId, int quantity, List<String> excludedIngredients) async {
     debugPrint(
-      'CartProvider: updateCartItemQuantity called for $cartItemId to $quantity',
+      'CartProvider: updateCartItem called for $cartItemId to $quantity',
     );
     _isLoading = true;
     _errorMessage = null;
@@ -162,31 +141,32 @@ class CartProvider with ChangeNotifier {
     try {
       if (quantity <= 0) {
         debugPrint(
-          'CartProvider: updateCartItemQuantity: Quantity is 0 or less, removing item.',
+          'CartProvider: updateCartItem: Quantity is 0 or less, removing item.',
         );
         await removeFromCart(cartItemId);
         return;
       }
-      final updatedItem = await _cartService.updateCartItemQuantity(
+      final updatedItem = await _cartService.updateCartItem(
         cartItemId,
         quantity,
+        excludedIngredients,
       );
       int index = _cartItems.indexWhere((item) => item.id == cartItemId);
       if (index != -1) {
         _cartItems[index] = updatedItem;
         debugPrint(
-          'CartProvider: updateCartItemQuantity: Item updated in list.',
+          'CartProvider: updateCartItem: Item updated in list.',
         );
       }
     } catch (e) {
       _errorMessage = e.toString();
       debugPrint(
-        'CartProvider: updateCartItemQuantity: Error updating quantity: $_errorMessage',
+        'CartProvider: updateCartItem: Error updating quantity: $_errorMessage',
       );
     } finally {
       _isLoading = false;
       notifyListeners();
-      debugPrint('CartProvider: updateCartItemQuantity: Finished processing.');
+      debugPrint('CartProvider: updateCartItem: Finished processing.');
     }
   }
 
