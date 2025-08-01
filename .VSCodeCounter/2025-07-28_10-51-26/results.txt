@@ -1,0 +1,84 @@
+Date : 2025-07-28 10:51:26
+Directory : c:\Users\Asus\Desktop\project_stage\app_client\lib
+Total : 46 files,  6992 codes, 312 comments, 545 blanks, all 7849 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| Dart       |         44 |      5,696 |        252 |        480 |      6,428 |
+| YAML       |          1 |      1,127 |         15 |         28 |      1,170 |
+| JavaScript |          1 |        169 |         45 |         37 |        251 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++-----------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                          | files      | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                             |         46 |      6,992 |        312 |        545 |      7,849 |
+| . (Files)                                                                                     |          3 |      1,353 |         69 |         74 |      1,496 |
+| config                                                                                        |          2 |         38 |          2 |          6 |         46 |
+| models                                                                                        |          8 |      1,227 |         43 |        123 |      1,393 |
+| providers                                                                                     |          6 |        694 |         55 |         95 |        844 |
+| screens                                                                                       |         11 |      2,698 |         79 |        131 |      2,908 |
+| screens\auth                                                                                  |          3 |      1,035 |         19 |         59 |      1,113 |
+| screens\cart                                                                                  |          2 |        638 |         21 |         20 |        679 |
+| screens\home                                                                                  |          3 |      1,025 |         39 |         46 |      1,110 |
+| screens\orders                                                                                |          3 |          0 |          0 |          6 |          6 |
+| services                                                                                      |          7 |        515 |         34 |         71 |        620 |
+| settings                                                                                      |          2 |          0 |          0 |          4 |          4 |
+| widgets                                                                                       |          7 |        467 |         30 |         41 |        538 |
++-----------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-----------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                                      | language   | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\config\app_config.dart                     | Dart       |         14 |          2 |          3 |         19 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\config\theme.dart                          | Dart       |         24 |          0 |          3 |         27 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\feedbackController.js                      | JavaScript |        169 |         45 |         37 |        251 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\main.dart                                  | Dart       |         57 |          9 |          9 |         75 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\models\cart.dart                           | Dart       |         33 |          3 |          6 |         42 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\models\feedback.dart                       | Dart       |        192 |         14 |         29 |        235 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\models\food.dart                           | Dart       |        195 |          7 |         20 |        222 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\models\order.dart                          | Dart       |        269 |          2 |         15 |        286 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\models\payment.dart                        | Dart       |        166 |          8 |         19 |        193 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\models\restaurant.dart                     | Dart       |        106 |          1 |          9 |        116 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\models\user.dart                           | Dart       |        218 |          6 |         20 |        244 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\models\user_public_profile.dart            | Dart       |         48 |          2 |          5 |         55 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\openapi -v2.3.yaml                         | YAML       |      1,127 |         15 |         28 |      1,170 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\providers\auth_provider.dart               | Dart       |        157 |          3 |         19 |        179 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\providers\cart_provider.dart               | Dart       |        196 |         30 |         24 |        250 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\providers\order_provider.dart              | Dart       |        137 |          1 |         15 |        153 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\providers\restaurant_provider.dart         | Dart       |        140 |         17 |         23 |        180 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\providers\review_provider.dart             | Dart       |         55 |          4 |         10 |         69 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\providers\theme_provider.dart              | Dart       |          9 |          0 |          4 |         13 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\auth\login_screen.dart             | Dart       |        323 |          8 |         19 |        350 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\auth\profile_screen.dart           | Dart       |        282 |          8 |         18 |        308 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\auth\register_screen.dart          | Dart       |        430 |          3 |         22 |        455 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\cart\cart_screen.dart              | Dart       |        392 |         13 |         15 |        420 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\cart\checkout_screen.dart          | Dart       |        246 |          8 |          5 |        259 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\home\food_detail_screen.dart       | Dart       |        234 |         16 |          9 |        259 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\home\home_screen.dart              | Dart       |        187 |         21 |         13 |        221 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\home\restaurant_detail_screen.dart | Dart       |        604 |          2 |         24 |        630 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\orders\order_detail_screen.dart    | Dart       |          0 |          0 |          2 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\orders\order_tracking_screen.dart  | Dart       |          0 |          0 |          2 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\screens\orders\orders_screen.dart          | Dart       |          0 |          0 |          2 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\services\api_service.dart                  | Dart       |        132 |         12 |         17 |        161 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\services\auth_service.dart                 | Dart       |        218 |         16 |         29 |        263 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\services\cart_service.dart                 | Dart       |         72 |          4 |          7 |         83 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\services\location_service.dart             | Dart       |          0 |          0 |          2 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\services\notification_service.dart         | Dart       |          0 |          0 |          2 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\services\order_service.dart                | Dart       |         80 |          1 |          8 |         89 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\services\review_service.dart               | Dart       |         13 |          1 |          6 |         20 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\settings\feedback_screen.dart              | Dart       |          0 |          0 |          2 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\settings\settings_screen.dart              | Dart       |          0 |          0 |          2 |          2 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\widgets\category_filter.dart               | Dart       |         51 |          0 |          6 |         57 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\widgets\food_card.dart                     | Dart       |        110 |         17 |          6 |        133 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\widgets\login_background_painter.dart      | Dart       |         24 |          0 |          7 |         31 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\widgets\rating_stars.dart                  | Dart       |         31 |          0 |          4 |         35 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\widgets\restaurant_card.dart               | Dart       |        140 |         13 |          7 |        160 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\widgets\search_bar.dart                    | Dart       |         58 |          0 |          7 |         65 |
+| c:\Users\Asus\Desktop\project_stage\app_client\lib\widgets\shimmer_restaurant_card.dart       | Dart       |         53 |          0 |          4 |         57 |
+| Total                                                                                         |            |      6,992 |        312 |        545 |      7,849 |
++-----------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
