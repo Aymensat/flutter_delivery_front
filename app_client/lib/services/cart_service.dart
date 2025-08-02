@@ -1,5 +1,7 @@
 // lib/services/cart_service.dart
 import 'dart:convert';
+import 'package:flutter/foundation.dart'; // For debugPrint
+
 import '../config/app_config.dart';
 import 'api_service.dart';
 import '../models/cart.dart';
@@ -33,12 +35,14 @@ class CartService {
     List<String> excludedIngredients = const [],
   }) async {
     try {
-      final response = await _apiService.post('/cart', {
+      final body = {
         'foodId': foodId,
         'quantity': quantity,
         'user': userId, // Use the provided userId
         'excludedIngredients': excludedIngredients,
-      });
+      };
+      debugPrint('addItemToCart request body: ${jsonEncode(body)}');
+      final response = await _apiService.post('/cart', body);
       return Cart.fromJson(response);
     } catch (e) {
       print('Failed to add item to cart: $e');
@@ -48,17 +52,19 @@ class CartService {
     }
   }
 
-  Future<Cart> updateCartItem(
+  Future<void> updateCartItem(
     String cartItemId,
     int quantity,
     List<String> excludedIngredients,
   ) async {
     try {
-      final response = await _apiService.put('/cart/$cartItemId', {
+      final body = {
         'quantity': quantity,
         'excludedIngredients': excludedIngredients,
-      });
-      return Cart.fromJson(response);
+      };
+      debugPrint(
+          'updateCartItem request body for item $cartItemId: ${jsonEncode(body)}');
+      await _apiService.put('/cart/$cartItemId', body);
     } catch (e) {
       print('Failed to update cart item: $e');
       throw Exception('Failed to update cart item: $e');

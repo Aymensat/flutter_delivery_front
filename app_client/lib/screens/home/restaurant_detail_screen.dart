@@ -7,8 +7,8 @@ import '../../providers/cart_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/review_provider.dart';
 import '../../widgets/rating_stars.dart';
+import '../cart/cart_screen.dart';
 import 'food_detail_screen.dart';
-import '../../models/feedback.dart' as model;
 
 class RestaurantDetailScreen extends StatefulWidget {
   final Restaurant restaurant;
@@ -70,9 +70,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
           _foodErrorMessage = 'Failed to load food items: ${e.toString()}';
         });
       }
-      debugPrint(
-        'RestaurantDetailScreen: Error loading foods: $e',
-      );
+      debugPrint('RestaurantDetailScreen: Error loading foods: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -84,8 +82,10 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
   }
 
   Future<void> _loadReviews() async {
-    await Provider.of<ReviewProvider>(context, listen: false)
-        .fetchReviewsForRestaurant(widget.restaurant.id);
+    await Provider.of<ReviewProvider>(
+      context,
+      listen: false,
+    ).fetchReviewsForRestaurant(widget.restaurant.id);
   }
 
   @override
@@ -95,12 +95,12 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
     );
     final String? fullRestaurantImageUrl =
         (widget.restaurant.imageUrl != null &&
-                widget.restaurant.imageUrl!.isNotEmpty)
-            ? (widget.restaurant.imageUrl!.startsWith('http://') ||
-                    widget.restaurant.imageUrl!.startsWith('https://'))
-                ? widget.restaurant.imageUrl!
-                : '$baseServerUrl${widget.restaurant.imageUrl!}'
-            : null;
+            widget.restaurant.imageUrl!.isNotEmpty)
+        ? (widget.restaurant.imageUrl!.startsWith('http://') ||
+                  widget.restaurant.imageUrl!.startsWith('https://'))
+              ? widget.restaurant.imageUrl!
+              : '$baseServerUrl${widget.restaurant.imageUrl!}'
+        : null;
 
     debugPrint('Restaurant Image URL attempt: $fullRestaurantImageUrl');
 
@@ -121,9 +121,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
               width: double.infinity,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                debugPrint(
-                  'Restaurant Image load failed: $error',
-                );
+                debugPrint('Restaurant Image load failed: $error');
                 return Container(
                   height: 200,
                   color: Colors.grey[300],
@@ -166,8 +164,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
                 Text(
                   widget.restaurant.name,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 RatingStars(rating: widget.restaurant.rating),
@@ -214,10 +212,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              children: [
-                _buildMenuTab(),
-                _buildReviewsTab(),
-              ],
+              children: [_buildMenuTab(), _buildReviewsTab()],
             ),
           ),
         ],
@@ -229,231 +224,173 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
     return _isLoadingFoods
         ? const Center(child: CircularProgressIndicator())
         : _foodErrorMessage != null
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    _foodErrorMessage!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.red,
-                      fontSize: 16,
+        ? Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                _foodErrorMessage!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.red, fontSize: 16),
+              ),
+            ),
+          )
+        : _foods.isEmpty
+        ? const Center(child: Text('No food items found for this restaurant.'))
+        : ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: _foods.length,
+            itemBuilder: (context, index) {
+              final food = _foods[index];
+              final String? fullFoodImageUrl =
+                  (food.imageUrl != null && food.imageUrl!.isNotEmpty)
+                  ? (food.imageUrl!.startsWith('http://') ||
+                            food.imageUrl!.startsWith('https://'))
+                        ? food.imageUrl!
+                        : '$baseServerUrl${food.imageUrl!}'
+                  : null;
+
+              debugPrint(
+                'Food Image URL attempt for ${food.name}: $fullFoodImageUrl',
+              );
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 16),
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: InkWell(
+                  onTap: () => _navigateToFoodDetail(food),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      children: [
+                        if (fullFoodImageUrl != null)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: Image.network(
+                              fullFoodImageUrl,
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                debugPrint(
+                                  'Food Image load failed for ${food.name}: $error',
+                                );
+                                return Container(
+                                  width: 100,
+                                  height: 100,
+                                  color: Colors.grey[300],
+                                  child: Icon(
+                                    Icons.broken_image,
+                                    size: 40,
+                                    color: Colors.grey[600],
+                                  ),
+                                  alignment: Alignment.center,
+                                );
+                              },
+                            ),
+                          ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                food.name,
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                food.description,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(color: Colors.grey[600]),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '${food.price.toStringAsFixed(2)} TND',
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Consumer2<CartProvider, AuthProvider>(
+                          builder: (context, cartProvider, authProvider, child) {
+                            final bool isDisabled =
+                                !authProvider.isAuthenticated ||
+                                cartProvider.isLoading;
+
+                            debugPrint(
+                              'RestaurantDetailScreen: Add to Cart button state for ${food.name} - isAuthenticated: ${authProvider.isAuthenticated}, userId: ${authProvider.user?.id}, isLoading: ${cartProvider.isLoading}',
+                            );
+
+                            return IconButton(
+                              icon: cartProvider.isLoading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.add_shopping_cart),
+                              color: Theme.of(context).primaryColor,
+                              onPressed: isDisabled
+                                  ? null
+                                  : () async {
+                                      debugPrint(
+                                        'RestaurantDetailScreen: Add to Cart button pressed for ${food.name}.',
+                                      );
+                                      if (authProvider.user?.id == null) {
+                                        debugPrint(
+                                          'RestaurantDetailScreen: User ID is null, showing login snackbar.',
+                                        );
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Please log in to add items to your cart.',
+                                            ),
+                                            backgroundColor: Colors.orange,
+                                            duration: Duration(seconds: 3),
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      await cartProvider.addToCart(
+                                        food,
+                                        context,
+                                      );
+                                      if (mounted &&
+                                          cartProvider.errorMessage == null) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const CartScreen(),
+                                          ),
+                                        );
+                                      }
+                                    },
+                            );
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              )
-            : _foods.isEmpty
-                ? const Center(
-                    child: Text('No food items found for this restaurant.'),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16.0),
-                    itemCount: _foods.length,
-                    itemBuilder: (context, index) {
-                      final food = _foods[index];
-                      final String? fullFoodImageUrl =
-                          (food.imageUrl != null && food.imageUrl!.isNotEmpty)
-                              ? (food.imageUrl!.startsWith('http://') ||
-                                      food.imageUrl!.startsWith('https://'))
-                                  ? food.imageUrl!
-                                  : '$baseServerUrl${food.imageUrl!}'
-                              : null;
-
-                      debugPrint(
-                        'Food Image URL attempt for ${food.name}: $fullFoodImageUrl',
-                      );
-
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: InkWell(
-                          onTap: () => _navigateToFoodDetail(food),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Row(
-                              children: [
-                                if (fullFoodImageUrl != null)
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(
-                                      8.0,
-                                    ),
-                                    child: Image.network(
-                                      fullFoodImageUrl,
-                                      width: 100,
-                                      height: 100,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        debugPrint(
-                                          'Food Image load failed for ${food.name}: $error',
-                                        );
-                                        return Container(
-                                          width: 100,
-                                          height: 100,
-                                          color: Colors.grey[300],
-                                          child: Icon(
-                                            Icons.broken_image,
-                                            size: 40,
-                                            color: Colors.grey[600],
-                                          ),
-                                          alignment: Alignment.center,
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        food.name,
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.titleLarge,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        food.description,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: Colors.grey[600],
-                                            ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        '${food.price.toStringAsFixed(2)} TND',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                              color: Theme.of(
-                                                context,
-                                              ).primaryColor,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Consumer2<CartProvider, AuthProvider>(
-                                  builder: (context, cartProvider,
-                                      authProvider, child) {
-                                    final existingCartItem =
-                                        cartProvider.getCartItem(food.id);
-                                    final int currentQuantity =
-                                        existingCartItem?.quantity ?? 0;
-
-                                    final bool isDisabled =
-                                        !authProvider.isAuthenticated ||
-                                            cartProvider.isLoading;
-
-                                    debugPrint(
-                                      'RestaurantDetailScreen: Add to Cart button state for ${food.name} - isAuthenticated: ${authProvider.isAuthenticated}, userId: ${authProvider.user?.id}, isLoading: ${cartProvider.isLoading}',
-                                    );
-
-                                    return IconButton(
-                                      icon: cartProvider.isLoading
-                                          ? const SizedBox(
-                                              width: 20,
-                                              height: 20,
-                                              child: CircularProgressIndicator(
-                                                color: Colors.white,
-                                                strokeWidth: 2,
-                                              ),
-                                            )
-                                          : const Icon(
-                                              Icons.add_shopping_cart,
-                                            ),
-                                      color: Theme.of(context).primaryColor,
-                                      onPressed: isDisabled
-                                          ? null
-                                          : () async {
-                                              debugPrint(
-                                                'RestaurantDetailScreen: Add to Cart button pressed for ${food.name}.',
-                                              );
-                                              if (authProvider.user?.id ==
-                                                  null) {
-                                                debugPrint(
-                                                  'RestaurantDetailScreen: User ID is null, showing login snackbar.',
-                                                );
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  const SnackBar(
-                                                    content: Text(
-                                                      'Please log in to add items to your cart.',
-                                                    ),
-                                                    backgroundColor:
-                                                        Colors.orange,
-                                                    duration: Duration(
-                                                      seconds: 3,
-                                                    ),
-                                                  ),
-                                                );
-                                                return;
-                                              }
-                                              await cartProvider.addToCart(
-                                                food.id,
-                                                context,
-                                              );
-                                              if (cartProvider.errorMessage ==
-                                                  null) {
-                                                debugPrint(
-                                                  'RestaurantDetailScreen: Add to Cart successful for ${food.name}, showing snackbar.',
-                                                );
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      '${food.name} added to cart! Quantity: ${currentQuantity + 1}',
-                                                    ),
-                                                    duration:
-                                                        const Duration(
-                                                      seconds: 2,
-                                                    ),
-                                                  ),
-                                                );
-                                              } else {
-                                                debugPrint(
-                                                  'RestaurantDetailScreen: Add to Cart failed for ${food.name}, showing error snackbar: ${cartProvider.errorMessage}',
-                                                );
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      'Failed to add ${food.name} to cart: ${cartProvider.errorMessage}',
-                                                    ),
-                                                    backgroundColor: Colors.red,
-                                                    duration:
-                                                        const Duration(
-                                                      seconds: 3,
-                                                    ),
-                                                  ),
-                                                );
-                                              }
-                                            },
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  );
+              );
+            },
+          );
   }
 
   // TODO: The "Write a Review" button and dialog should be moved to the OrderDetailScreen.
@@ -468,47 +405,48 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
               child: reviewProvider.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : reviews.isEmpty
-                      ? const Center(child: Text('No reviews yet.'))
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16.0),
-                          itemCount: reviews.length,
-                          itemBuilder: (context, index) {
-                            final review = reviews[index];
-                            return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 8.0),
-                              child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                  ? const Center(child: Text('No reviews yet.'))
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(16.0),
+                      itemCount: reviews.length,
+                      itemBuilder: (context, index) {
+                        final review = reviews[index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          review.userId, // Replace with user's name if available
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        RatingStars(
-                                            rating: review.rating.toDouble()),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(review.comment),
-                                    const SizedBox(height: 8),
                                     Text(
-                                      review.timeAgo,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall,
+                                      review
+                                          .userId, // Replace with user's name if available
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    RatingStars(
+                                      rating: review.rating.toDouble(),
                                     ),
                                   ],
                                 ),
-                              ),
-                            );
-                          },
-                        ),
+                                const SizedBox(height: 8),
+                                Text(review.comment),
+                                const SizedBox(height: 8),
+                                Text(
+                                  review.timeAgo,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -548,9 +486,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
   }
 
   void _showReviewDialog(BuildContext context, String restaurantId) {
-    final _formKey = GlobalKey<FormState>();
-    int _rating = 0;
-    String _comment = '';
+    final formKey = GlobalKey<FormState>();
+    int rating = 0;
+    String comment = '';
 
     showDialog(
       context: context,
@@ -558,7 +496,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
         return AlertDialog(
           title: const Text('Write a Review'),
           content: Form(
-            key: _formKey,
+            key: formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -570,12 +508,12 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
                       children: List.generate(5, (index) {
                         return IconButton(
                           icon: Icon(
-                            index < _rating ? Icons.star : Icons.star_border,
+                            index < rating ? Icons.star : Icons.star_border,
                             color: Colors.amber,
                           ),
                           onPressed: () {
                             setState(() {
-                              _rating = index + 1;
+                              rating = index + 1;
                             });
                           },
                         );
@@ -588,7 +526,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
                     labelText: 'Comment',
                     border: OutlineInputBorder(),
                   ),
-                  onSaved: (value) => _comment = value ?? '',
+                  onSaved: (value) => comment = value ?? '',
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a comment.';
@@ -606,14 +544,17 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
             ),
             ElevatedButton(
               onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  _formKey.currentState!.save();
-                  final success = await Provider.of<ReviewProvider>(context, listen: false)
-                      .submitReview(
-                    restaurantId: restaurantId,
-                    rating: _rating,
-                    comment: _comment,
-                  );
+                if (formKey.currentState!.validate()) {
+                  formKey.currentState!.save();
+                  final success =
+                      await Provider.of<ReviewProvider>(
+                        context,
+                        listen: false,
+                      ).submitReview(
+                        restaurantId: restaurantId,
+                        rating: rating,
+                        comment: comment,
+                      );
                   Navigator.of(context).pop();
                   if (success) {
                     _loadReviews();
