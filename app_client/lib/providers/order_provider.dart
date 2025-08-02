@@ -1,4 +1,3 @@
-// lib/providers/order_provider.dart
 import 'package:flutter/material.dart';
 import '../models/order.dart';
 import '../services/order_service.dart';
@@ -47,25 +46,13 @@ class OrderProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> placeOrder({
-    required String restaurantId,
-    required List<OrderItem> items,
-    required String deliveryAddress,
-    String? specialInstructions,
-    required String paymentMethod,
-  }) async {
+  Future<bool> placeOrder(Order order) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final newOrder = await _orderService.createOrder(
-        restaurantId: restaurantId,
-        items: items,
-        deliveryAddress: deliveryAddress,
-        specialInstructions: specialInstructions,
-        paymentMethod: paymentMethod,
-      );
+      final newOrder = await _orderService.createOrder(order);
       _orders.add(newOrder); // Add the new order to the list
       notifyListeners();
       return true;
@@ -78,22 +65,20 @@ class OrderProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> updateOrderStatus(String orderId, OrderStatus status) async {
+  Future<bool> updateOrderStatus(String orderId, String status, {String? livreurId}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final updatedOrder = await _orderService.updateOrderStatus(
-        orderId,
-        status,
-      );
+      final updatedOrder = await _orderService.updateOrderStatus(orderId, status, livreurId: livreurId);
       int index = _orders.indexWhere((order) => order.id == orderId);
       if (index != -1) {
         _orders[index] = updatedOrder;
       }
-      _selectedOrder =
-          updatedOrder; // Update selected order if it's the one being updated
+      if (_selectedOrder?.id == orderId) {
+        _selectedOrder = updatedOrder;
+      }
       notifyListeners();
       return true;
     } catch (e) {

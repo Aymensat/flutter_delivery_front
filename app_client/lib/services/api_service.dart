@@ -64,6 +64,23 @@ class ApiService {
     return _handleResponse(response);
   }
 
+  // NEW: Generic PATCH request with JSON data
+  Future<dynamic> patch(String endpoint, Map<String, dynamic> data) async {
+    final token = await _authService.getToken();
+    if (token == null) {
+      throw Exception('Authentication token not found. Please log in.');
+    }
+    final response = await http.patch(
+      Uri.parse('$_baseUrl$endpoint'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(data),
+    );
+    return _handleResponse(response);
+  }
+
   // NEW: Generic DELETE request
   Future<dynamic> delete(String endpoint) async {
     final token = await _authService.getToken();

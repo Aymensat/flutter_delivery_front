@@ -1,32 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'config/theme.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
+import 'providers/order_provider.dart';
 import 'providers/restaurant_provider.dart';
 import 'providers/review_provider.dart';
-// import 'providers/order_provider.dart'; // FIX: Remove unused import for now if OrderProvider isn't ready
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
-import 'services/api_service.dart'; // Assuming ApiService is used to load token
+import 'services/api_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // final prefs = await SharedPreferences.getInstance();
-  // await prefs.clear(); // ONLY FOR DEBUGGING! Remove in production.
-  // Load saved token (assuming ApiService handles this or it's moved to AuthService)
-  // If token loading is part of AuthProvider's init or AuthService, this line might be removed.
-  // For now, keeping it if it's the standard entry point for token loading.
-  await ApiService()
-      .loadToken(); // Ensure ApiService().loadToken() exists or move this logic
+  await ApiService().loadToken();
 
-  runApp(const MyApp()); // FIX: Add const
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key}); // FIX: Add key parameter
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -36,14 +29,12 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => RestaurantProvider()),
         ChangeNotifierProvider(create: (_) => ReviewProvider()),
-        // FIX: If OrderProvider is not yet implemented or causing errors,
-        // comment it out or ensure it's correctly defined.
-        // ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ChangeNotifierProvider(create: (_) => OrderProvider()),
       ],
       child: MaterialApp(
         title: 'Food Delivery',
         theme: AppTheme.lightTheme,
-        home: const AuthWrapper(), // FIX: Add const
+        home: const AuthWrapper(),
         debugShowCheckedModeBanner: false,
       ),
     );
@@ -51,7 +42,7 @@ class MyApp extends StatelessWidget {
 }
 
 class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key}); // FIX: Add key parameter
+  const AuthWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -64,9 +55,9 @@ class AuthWrapper extends StatelessWidget {
         }
 
         if (authProvider.isAuthenticated) {
-          return const HomeScreen(); // FIX: Add const
+          return const HomeScreen();
         } else {
-          return const LoginScreen(); // FIX: Add const
+          return const LoginScreen();
         }
       },
     );

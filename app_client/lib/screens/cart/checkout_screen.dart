@@ -1,7 +1,10 @@
-// lib/screens/cart/checkout_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/cart_provider.dart'; // Import CartProvider
+import '../../providers/auth_provider.dart';
+import '../../providers/cart_provider.dart';
+import '../../providers/order_provider.dart';
+import '../../models/order.dart';
+import '../orders/orders_screen.dart';
 
 class CheckoutScreen extends StatelessWidget {
   const CheckoutScreen({super.key});
@@ -9,6 +12,7 @@ class CheckoutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cartProvider = Provider.of<CartProvider>(context);
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Checkout')),
@@ -188,19 +192,86 @@ class CheckoutScreen extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: cartProvider.cartItems.isEmpty
                         ? null
-                        : () {
-                            // TODO: Implement actual order placement logic here
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Order Placed! (Placeholder)'),
-                              ),
-                            );
-                            // You might want to clear the cart and navigate to an order confirmation screen
-                            cartProvider.clearCart();
-                            Navigator.popUntil(
+                        : () async {
+                            final authProvider = Provider.of<AuthProvider>(
                               context,
-                              (route) => route.isFirst,
-                            ); // Go back to home
+                              listen: false,
+                            );
+                            final user = authProvider.user;
+
+                            if (user == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'You must be logged in to place an order.',
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              return;
+                            }
+
+                            final orderItems = cartProvider.cartItems.map((
+                              cartItem,
+                            ) {
+                              return OrderItem(
+                                food: cartItem.food.id,
+                                quantity: cartItem.quantity,
+                                excludedIngredients:
+                                    cartItem.excludedIngredients,
+                              );
+                            }).toList();
+
+                            final order = Order(
+                              id: '', // The backend will generate the ID
+                              user: user.id,
+                              restaurant:
+                                  cartProvider.cartItems.first.food.restaurant,
+                              items: orderItems,
+                              totalPrice:
+                                  cartProvider.totalAmount +
+                                  5.00, // Total with delivery fee
+                              subtotal: cartProvider.totalAmount,
+                              deliveryFee: 5.00,
+                              status: 'pending',
+                              paymentStatus: 'pending',
+                              serviceMethod: 'delivery',
+                              paymentMethod: 'credit-card',
+                              reference: DateTime.now()
+                                  .millisecondsSinceEpoch, // A unique reference
+                              phone: user.phone,
+                              latitude:
+                                  36.8065, // Placeholder latitude for Tunis
+                              longitude:
+                                  10.1815, // Placeholder longitude for Tunis
+                              cookingTime:
+                                  30, // Placeholder cooking time in minutes
+                              createdAt: DateTime.now(),
+                            );
+
+                            final success = await orderProvider.placeOrder(
+                              order,
+                            );
+
+                            if (success) {
+                              cartProvider.clearCart();
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                  builder: (context) => const OrdersScreen(),
+                                ),
+                                (route) => route.isFirst,
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    orderProvider.errorMessage ??
+                                        'Failed to place order.',
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
                           },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),

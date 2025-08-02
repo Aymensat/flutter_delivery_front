@@ -1,4 +1,3 @@
-// lib/services/order_service.dart
 import 'dart:convert';
 import '../config/app_config.dart';
 import 'api_service.dart';
@@ -30,21 +29,9 @@ class OrderService {
     }
   }
 
-  Future<Order> createOrder({
-    required String restaurantId,
-    required List<OrderItem> items,
-    required String deliveryAddress,
-    String? specialInstructions,
-    required String paymentMethod,
-  }) async {
+  Future<Order> createOrder(Order order) async {
     try {
-      final response = await _apiService.post('/orders', {
-        'restaurantId': restaurantId,
-        'items': items.map((item) => item.toJson()).toList(),
-        'deliveryAddress': deliveryAddress,
-        'specialInstructions': specialInstructions,
-        'paymentMethod': paymentMethod,
-      });
+      final response = await _apiService.post('/orders/add', order.toJson());
       return Order.fromJson(response);
     } catch (e) {
       print('Failed to create order: $e');
@@ -52,11 +39,12 @@ class OrderService {
     }
   }
 
-  Future<Order> updateOrderStatus(String orderId, OrderStatus status) async {
+  Future<Order> updateOrderStatus(String orderId, String status, {String? livreurId}) async {
     try {
-      final response = await _apiService.put('/orders/$orderId/status', {
-        'status': status.name, // Assuming enum name matches API string
-      });
+      final response = await _apiService.patch(
+        '/orders/$orderId/status',
+        {'status': status, if (livreurId != null) 'livreur': livreurId},
+      );
       return Order.fromJson(response);
     } catch (e) {
       print('Failed to update order status: $e');
@@ -66,9 +54,9 @@ class OrderService {
 
   Future<Order> assignDeliveryDriver(String orderId, String livreurId) async {
     try {
-      final response = await _apiService.put(
+      final response = await _apiService.patch(
         '/orders/$orderId/assign-livreur',
-        {'livreurId': livreurId},
+        {'livreur': livreurId},
       );
       return Order.fromJson(response);
     } catch (e) {
