@@ -8,6 +8,7 @@ class OrderService {
   Future<List<Order>> fetchOrders() async {
     try {
       final response = await _apiService.get('/orders');
+      debugPrint('Raw JSON from /orders: $response');
       if (response is List) {
         return response.map((item) => Order.fromJson(item)).toList();
       }
@@ -21,6 +22,7 @@ class OrderService {
   Future<Order> fetchOrderById(String orderId) async {
     try {
       final response = await _apiService.get('/orders/$orderId');
+      debugPrint('Raw JSON for order $orderId: $response');
       return Order.fromJson(response);
     } catch (e) {
       debugPrint('Failed to fetch order $orderId: $e');

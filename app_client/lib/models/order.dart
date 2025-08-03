@@ -99,11 +99,20 @@ class Order {
       return '';
     }
 
+    // Prioritize the restaurant name from the populated 'restaurant' object if available.
+    String? restaurantName;
+    if (json['restaurant'] is Map<String, dynamic> &&
+        json['restaurant']['name'] != null) {
+      restaurantName = json['restaurant']['name'];
+    } else {
+      restaurantName = json['restaurantName'];
+    }
+
     return Order(
       id: json['_id'] ?? '',
       user: extractId(json['user']),
       restaurant: extractId(json['restaurant']),
-      restaurantName: json['restaurantName'],
+      restaurantName: restaurantName, // Use the derived name
       restaurantLatitude: (json['restaurantLatitude'] as num?)?.toDouble(),
       restaurantLongitude: (json['restaurantLongitude'] as num?)?.toDouble(),
       items: (json['items'] as List<dynamic>? ?? [])

@@ -251,4 +251,15 @@ class AuthService {
       rethrow;
     }
   }
+
+  // NEW: Method to fetch a user's public profile by their ID
+  Future<UserPublicProfile> getUserProfileById(String userId) async {
+    try {
+      final response = await apiService.get('/users/$userId');
+      return UserPublicProfile.fromMap(response);
+    } catch (e) {
+      debugPrint('Failed to fetch user profile for ID $userId: $e');
+      throw Exception('Failed to load user profile.');
+    }
+  }
 }

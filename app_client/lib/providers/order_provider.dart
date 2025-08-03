@@ -20,7 +20,9 @@ class OrderProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _orders = await _orderService.fetchOrders();
+      final rawOrders = await _orderService.fetchOrders();
+      debugPrint('Raw orders from service: $rawOrders');
+      _orders = rawOrders;
     } catch (e) {
       _errorMessage = e.toString();
       _orders = [];
