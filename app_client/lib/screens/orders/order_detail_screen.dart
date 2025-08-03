@@ -1,6 +1,7 @@
 import 'package:app_client/models/food.dart';
 import 'package:app_client/services/food_service.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../models/order.dart';
 import 'delivery_tracking_screen.dart';
 
@@ -56,7 +57,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             Text(
               'Restaurant: ${widget.order.restaurantName?.isNotEmpty == true ? widget.order.restaurantName : "Unknown Restaurant"}',
             ),
-            Text('Order Date: ${widget.order.createdAt}'),
+            Text(
+              'Order Date: ${DateFormat.yMMMd().add_jm().format(widget.order.createdAt)}',
+            ),
             Text('Payment Method: ${widget.order.paymentMethod.value}'),
             Text(
               'Delivery Address: ${widget.order.latitude}, ${widget.order.longitude}',
@@ -94,7 +97,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         );
                       }
 
-                      final String exclusions = orderItem.excludedIngredients.isNotEmpty
+                      final String exclusions =
+                          orderItem.excludedIngredients.isNotEmpty
                           ? 'Excluding: ${orderItem.excludedIngredients.join(', ')}'
                           : 'No exclusions';
 
@@ -114,18 +118,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
-            if (widget.order.status == 'livring')
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          DeliveryTrackingScreen(order: widget.order),
-                    ),
-                  );
-                },
-                child: const Text('Track Order'),
-              ),
+            ElevatedButton(
+              onPressed: () { // Always enabled for demo purposes
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        DeliveryTrackingScreen(order: widget.order),
+                  ),
+                );
+              },
+              child: const Text('Track Order'),
+            ),
           ],
         ),
       ),
