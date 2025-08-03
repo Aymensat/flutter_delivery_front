@@ -50,7 +50,7 @@ class OrdersScreenState extends State<OrdersScreen> {
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('\${order.totalPrice.toStringAsFixed(2)}'),
+                    Text('\$${order.totalPrice.toStringAsFixed(2)}'),
                     if (order.status == 'livring')
                       IconButton(
                         icon: const Icon(Icons.track_changes),
