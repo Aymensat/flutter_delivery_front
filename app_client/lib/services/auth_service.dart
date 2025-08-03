@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
-import '../models/user.dart'; // For the User model used in registration
 import '../models/user_public_profile.dart'; // For UserPublicProfile
 import 'api_service.dart'; // Import ApiService
 
@@ -41,14 +40,7 @@ class AuthService {
     if (userJson != null) {
       try {
         final Map<String, dynamic> userDataMap = jsonDecode(userJson);
-        // Ensure that the decoded JSON is indeed a Map before passing to fromMap
-        if (userDataMap is Map<String, dynamic>) {
-          return UserPublicProfile.fromMap(userDataMap);
-        } else {
-          debugPrint('Stored user data is not a valid Map.');
-          await deleteCurrentUser(); // Clear corrupted data
-          return null;
-        }
+        return UserPublicProfile.fromMap(userDataMap);
       } catch (e) {
         debugPrint('Error decoding stored user data in getCurrentUser: $e');
         await deleteCurrentUser(); // Clear corrupted data if parsing fails

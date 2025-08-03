@@ -17,7 +17,7 @@ class LoginBackgroundPainter extends CustomPainter {
 
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
 
-    final circlePaint = Paint()..color = Colors.white.withOpacity(0.1);
+    final circlePaint = Paint()..color = Colors.white.withAlpha((255 * 0.1).round());
 
     canvas.drawCircle(Offset(size.width * 0.2, size.height * 0.2), 50, circlePaint);
     canvas.drawCircle(Offset(size.width * 0.8, size.height * 0.3), 80, circlePaint);

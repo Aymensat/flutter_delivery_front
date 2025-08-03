@@ -1,5 +1,4 @@
 // lib/models/food.dart
-import 'package:flutter/foundation.dart'; // For @required if needed, though not strictly necessary with null safety
 
 class Food {
   final String id;

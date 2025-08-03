@@ -11,6 +11,7 @@ import '../../widgets/category_filter.dart'
     as CategoryFilterWidget; // FIX: Use prefix to avoid name conflict
 import 'restaurant_detail_screen.dart';
 import '../cart/cart_screen.dart'; // NEW: Import CartScreen
+import '../location/location_screen.dart'; // NEW: Import LocationScreen
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -69,13 +70,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final restaurantProvider = Provider.of<RestaurantProvider>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Food Delivery App'),
         centerTitle: false,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.location_on),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const LocationScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.shopping_cart),
             onPressed: () {

@@ -1,5 +1,4 @@
 // lib/models/restaurant.dart
-import 'package:flutter/foundation.dart'; // For @required if needed
 import 'food.dart'; // Import the Food model
 
 class Restaurant {

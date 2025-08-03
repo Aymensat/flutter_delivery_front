@@ -6,8 +6,7 @@ class FoodCard extends StatelessWidget {
   final Food food;
   final VoidCallback onAddToCart;
 
-  const FoodCard({Key? key, required this.food, required this.onAddToCart})
-    : super(key: key);
+  const FoodCard({super.key, required this.food, required this.onAddToCart});
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +47,7 @@ class FoodCard extends StatelessWidget {
                         // Handle errors during image loading
                         onError: (exception, stackTrace) {
                           // Print error to console for debugging
-                          print(
+                          debugPrint(
                             'FoodCard NetworkImage error for ${food.name}: $exception',
                           );
                         },

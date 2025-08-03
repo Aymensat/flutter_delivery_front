@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart'; // Import for WidgetsBinding
 import '../models/restaurant.dart';
 import '../models/food.dart';
@@ -46,21 +45,17 @@ class RestaurantProvider with ChangeNotifier {
     try {
       final results = await Future.wait([
         _apiService.getRestaurants(lat: lat, lon: lon).catchError((e, s) {
-          print('--- CRITICAL ERROR: Failed to fetch restaurants ---');
-          print(e);
-          print(s);
-          print('---------------------------------------------------');
           _error = 'Could not load restaurants. Please try again later.';
           return <Restaurant>[];
         }),
         _apiService.getFoods().catchError((e, s) {
-          print('--- WARNING: Failed to fetch food data for search ---');
-          print(
+          debugPrint('--- WARNING: Failed to fetch food data for search ---');
+          debugPrint(
             'The app will function, but food search will be disabled due to this error.',
           );
-          print(e);
-          print(s);
-          print('-------------------------------------------------------');
+          debugPrint(e.toString());
+          debugPrint(s.toString());
+          debugPrint('-------------------------------------------------------');
           return <Food>[];
         }),
       ]);
@@ -69,10 +64,10 @@ class RestaurantProvider with ChangeNotifier {
       _allFoods = results[1] as List<Food>;
     } catch (e, s) {
       _error = "An unexpected error occurred while loading data.";
-      print('--- UNEXPECTED FALLBACK ERROR in loadRestaurants ---');
-      print(e);
-      print(s);
-      print('----------------------------------------------------');
+      debugPrint('--- UNEXPECTED FALLBACK ERROR in loadRestaurants ---');
+      debugPrint(e.toString());
+      debugPrint(s.toString());
+      debugPrint('----------------------------------------------------');
       _restaurants = [];
       _allFoods = [];
     } finally {
@@ -162,12 +157,12 @@ class RestaurantProvider with ChangeNotifier {
 
           return matchesRestaurantInfo || matchesFood;
         } catch (e, s) {
-          print('--- FILTERING ERROR ---');
-          print(
+          debugPrint('--- FILTERING ERROR ---');
+          debugPrint(
             'Error processing restaurant "${restaurant.name}" (ID: ${restaurant.id}): $e',
           );
-          print('Stack trace: $s');
-          print('-----------------------');
+          debugPrint('Stack trace: $s');
+          debugPrint('-----------------------');
           return false;
         }
       }).toList();

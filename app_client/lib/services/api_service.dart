@@ -1,5 +1,6 @@
 // lib/services/api_service.dart
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../config/app_config.dart';
 import 'auth_service.dart';
@@ -120,8 +121,8 @@ class ApiService {
 
     var response = await request.send();
     var responseData = await response.stream.bytesToString();
-    print('Multipart request to $endpoint finished with status code ${response.statusCode}');
-    print('Response data: $responseData');
+    debugPrint('Multipart request to $endpoint finished with status code ${response.statusCode}');
+    debugPrint('Response data: $responseData');
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return jsonDecode(responseData);

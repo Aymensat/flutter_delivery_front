@@ -1,11 +1,9 @@
 // lib/providers/cart_provider.dart
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/cart.dart';
 import '../services/cart_service.dart';
 import '../providers/auth_provider.dart';
-import '../models/user_public_profile.dart';
 import '../models/food.dart';
 
 class CartProvider with ChangeNotifier {
@@ -45,7 +43,11 @@ class CartProvider with ChangeNotifier {
     }
   }
 
-  Future<void> addToCart(Food food, BuildContext context, {List<String> excludedIngredients = const []}) async {
+  Future<void> addToCart(
+    Food food,
+    BuildContext context, {
+    List<String> excludedIngredients = const [],
+  }) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -64,10 +66,9 @@ class CartProvider with ChangeNotifier {
         userId: userId,
         excludedIngredients: excludedIngredients,
       );
-      
+
       // After any modification, reload the cart from the backend to get the single source of truth.
       await loadCart(context);
-
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -76,7 +77,12 @@ class CartProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateCartItem(String cartItemId, int quantity, List<String> excludedIngredients, BuildContext context) async {
+  Future<void> updateCartItem(
+    String cartItemId,
+    int quantity,
+    List<String> excludedIngredients,
+    BuildContext context,
+  ) async {
     if (quantity <= 0) {
       await removeFromCart(cartItemId, context);
       return;
@@ -86,7 +92,11 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      await _cartService.updateCartItem(cartItemId, quantity, excludedIngredients);
+      await _cartService.updateCartItem(
+        cartItemId,
+        quantity,
+        excludedIngredients,
+      );
       await loadCart(context); // Reload cart from server
     } catch (e) {
       _errorMessage = e.toString();

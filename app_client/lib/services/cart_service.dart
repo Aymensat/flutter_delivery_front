@@ -2,15 +2,11 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart'; // For debugPrint
 
-import '../config/app_config.dart';
 import 'api_service.dart';
 import '../models/cart.dart';
-import 'auth_service.dart'; // To get token and user ID
-import '../models/user_public_profile.dart'; // Import UserPublicProfile to get user ID
 
 class CartService {
   final ApiService _apiService = ApiService();
-  final AuthService _authService = AuthService();
 
   Future<List<Cart>> fetchCart() async {
     try {
@@ -20,7 +16,7 @@ class CartService {
       }
       return [];
     } catch (e) {
-      print('Failed to fetch cart: $e');
+      debugPrint('Failed to fetch cart: $e');
       throw Exception(
         'Failed to load cart items: $e',
       ); // Include error for better debugging
@@ -45,7 +41,7 @@ class CartService {
       final response = await _apiService.post('/cart', body);
       return Cart.fromJson(response);
     } catch (e) {
-      print('Failed to add item to cart: $e');
+      debugPrint('Failed to add item to cart: $e');
       throw Exception(
         'Failed to add item to cart: $e',
       ); // Include error for better debugging
@@ -63,10 +59,11 @@ class CartService {
         'excludedIngredients': excludedIngredients,
       };
       debugPrint(
-          'updateCartItem request body for item $cartItemId: ${jsonEncode(body)}');
+        'updateCartItem request body for item $cartItemId: ${jsonEncode(body)}',
+      );
       await _apiService.put('/cart/$cartItemId', body);
     } catch (e) {
-      print('Failed to update cart item: $e');
+      debugPrint('Failed to update cart item: $e');
       throw Exception('Failed to update cart item: $e');
     }
   }
@@ -75,7 +72,7 @@ class CartService {
     try {
       await _apiService.delete('/cart/$cartItemId');
     } catch (e) {
-      print('Failed to remove cart item: $e');
+      debugPrint('Failed to remove cart item: $e');
       throw Exception('Failed to remove item from cart: $e');
     }
   }
@@ -84,7 +81,7 @@ class CartService {
     try {
       await _apiService.delete('/cart/clear');
     } catch (e) {
-      print('Failed to clear cart: $e');
+      debugPrint('Failed to clear cart: $e');
       throw Exception('Failed to clear cart: $e');
     }
   }

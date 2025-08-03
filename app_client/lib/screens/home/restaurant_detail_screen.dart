@@ -149,12 +149,12 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
               height: 200,
               width: double.infinity,
               color: Colors.grey[300],
+              alignment: Alignment.center,
               child: Icon(
                 Icons.image_not_supported,
                 size: 50,
                 color: Colors.grey[600],
               ),
-              alignment: Alignment.center,
             ),
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -282,12 +282,12 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
                                   width: 100,
                                   height: 100,
                                   color: Colors.grey[300],
+                                  alignment: Alignment.center,
                                   child: Icon(
                                     Icons.broken_image,
                                     size: 40,
                                     color: Colors.grey[600],
                                   ),
-                                  alignment: Alignment.center,
                                 );
                               },
                             ),

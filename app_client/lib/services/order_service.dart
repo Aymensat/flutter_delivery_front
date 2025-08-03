@@ -1,5 +1,4 @@
-import 'dart:convert';
-import '../config/app_config.dart';
+import 'package:flutter/foundation.dart';
 import 'api_service.dart';
 import '../models/order.dart';
 
@@ -14,7 +13,7 @@ class OrderService {
       }
       return [];
     } catch (e) {
-      print('Failed to fetch orders: $e');
+      debugPrint('Failed to fetch orders: $e');
       throw Exception('Failed to load orders.');
     }
   }
@@ -24,7 +23,7 @@ class OrderService {
       final response = await _apiService.get('/orders/$orderId');
       return Order.fromJson(response);
     } catch (e) {
-      print('Failed to fetch order $orderId: $e');
+      debugPrint('Failed to fetch order $orderId: $e');
       throw Exception('Failed to load order details.');
     }
   }
@@ -34,20 +33,24 @@ class OrderService {
       final response = await _apiService.post('/orders/add', order.toJson());
       return Order.fromJson(response);
     } catch (e) {
-      print('Failed to create order: $e');
+      debugPrint('Failed to create order: $e');
       throw Exception('Failed to create order.');
     }
   }
 
-  Future<Order> updateOrderStatus(String orderId, String status, {String? livreurId}) async {
+  Future<Order> updateOrderStatus(
+    String orderId,
+    String status, {
+    String? livreurId,
+  }) async {
     try {
-      final response = await _apiService.patch(
-        '/orders/$orderId/status',
-        {'status': status, if (livreurId != null) 'livreur': livreurId},
-      );
+      final response = await _apiService.patch('/orders/$orderId/status', {
+        'status': status,
+        if (livreurId != null) 'livreur': livreurId,
+      });
       return Order.fromJson(response);
     } catch (e) {
-      print('Failed to update order status: $e');
+      debugPrint('Failed to update order status: $e');
       throw Exception('Failed to update order status.');
     }
   }
@@ -60,7 +63,7 @@ class OrderService {
       );
       return Order.fromJson(response);
     } catch (e) {
-      print('Failed to assign delivery driver: $e');
+      debugPrint('Failed to assign delivery driver: $e');
       throw Exception('Failed to assign delivery driver.');
     }
   }
@@ -69,7 +72,7 @@ class OrderService {
     try {
       await _apiService.delete('/orders/delete/$orderId');
     } catch (e) {
-      print('Failed to delete order: $e');
+      debugPrint('Failed to delete order: $e');
       throw Exception('Failed to delete order.');
     }
   }

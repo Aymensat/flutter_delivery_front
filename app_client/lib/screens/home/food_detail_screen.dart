@@ -98,7 +98,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   },
                   child: Chip(
                     label: Text(ingredient),
-                    backgroundColor: isExcluded ? Colors.red.withOpacity(0.2) : null,
+                    backgroundColor: isExcluded ? Colors.red.withAlpha((255 * 0.2).round()) : null,
                     shape: StadiumBorder(
                       side: BorderSide(
                         color: isExcluded ? Colors.red : Colors.grey,

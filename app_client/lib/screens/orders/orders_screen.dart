@@ -1,3 +1,4 @@
+import 'package:app_client/screens/orders/delivery_tracking_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/order_provider.dart';
@@ -5,27 +6,26 @@ import '../../models/order.dart';
 import 'order_detail_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
-  const OrdersScreen({Key? key}) : super(key: key);
+  const OrdersScreen({super.key});
 
   @override
-  _OrdersScreenState createState() => _OrdersScreenState();
+  OrdersScreenState createState() => OrdersScreenState();
 }
 
-class _OrdersScreenState extends State<OrdersScreen> {
+class OrdersScreenState extends State<OrdersScreen> {
   @override
   void initState() {
     super.initState();
     // Fetch orders when the screen is initialized
-    Future.microtask(() =>
-        Provider.of<OrderProvider>(context, listen: false).fetchOrders());
+    Future.microtask(
+      () => Provider.of<OrderProvider>(context, listen: false).fetchOrders(),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Orders'),
-      ),
+      appBar: AppBar(title: const Text('My Orders')),
       body: Consumer<OrderProvider>(
         builder: (context, orderProvider, child) {
           if (orderProvider.isLoading) {
@@ -47,7 +47,24 @@ class _OrdersScreenState extends State<OrdersScreen> {
               return ListTile(
                 title: Text('Order #${order.reference}'),
                 subtitle: Text('Status: ${order.status}'),
-                trailing: Text('\$${order.totalPrice.toStringAsFixed(2)}'),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('\${order.totalPrice.toStringAsFixed(2)}'),
+                    if (order.status == 'livring')
+                      IconButton(
+                        icon: const Icon(Icons.track_changes),
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  DeliveryTrackingScreen(order: order),
+                            ),
+                          );
+                        },
+                      ),
+                  ],
+                ),
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(

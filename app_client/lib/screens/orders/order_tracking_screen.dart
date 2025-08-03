@@ -4,14 +4,12 @@ import '../../models/order.dart';
 class OrderTrackingScreen extends StatelessWidget {
   final Order order;
 
-  const OrderTrackingScreen({Key? key, required this.order}) : super(key: key);
+  const OrderTrackingScreen({super.key, required this.order});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Track Order #${order.reference}'),
-      ),
+      appBar: AppBar(title: Text('Track Order #${order.reference}')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

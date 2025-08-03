@@ -1,7 +1,6 @@
 // widgets/restaurant_card.dart
 import 'package:flutter/material.dart';
 import '../models/restaurant.dart';
-import '../models/food.dart'; // Added: Import for Food class
 
 class RestaurantCard extends StatelessWidget {
   final Restaurant restaurant;
@@ -53,7 +52,7 @@ class RestaurantCard extends StatelessWidget {
                         // Handle errors during image loading
                         onError: (exception, stackTrace) {
                           // Print error to console for debugging
-                          print(
+                          debugPrint(
                             'RestaurantCard NetworkImage error for ${restaurant.name}: $exception',
                           );
                         },

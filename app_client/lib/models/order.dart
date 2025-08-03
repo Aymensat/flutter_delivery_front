@@ -1,4 +1,41 @@
-import 'package:flutter/foundation.dart';
+// Enum to represent the available payment methods.
+enum PaymentMethod {
+  creditCard,
+  paypal,
+  cash, // Added for cash on delivery
+}
+
+// Extension to provide string conversion for the PaymentMethod enum.
+extension PaymentMethodExtension on PaymentMethod {
+  // Converts the enum value to its corresponding string representation for the API.
+  String get value {
+    switch (this) {
+      case PaymentMethod.creditCard:
+        return 'credit-card';
+      case PaymentMethod.paypal:
+        return 'paypal';
+      case PaymentMethod.cash:
+        return 'cash'; // The backend will handle this as a special case.
+      // default:
+      //   return 'credit-card';
+    }
+  }
+
+  // Converts a string from the API to the corresponding enum value.
+  static PaymentMethod fromString(String? value) {
+    switch (value) {
+      case 'credit-card':
+        return PaymentMethod.creditCard;
+      case 'paypal':
+        return PaymentMethod.paypal;
+      case 'cash':
+        return PaymentMethod.cash;
+      default:
+        // Default to creditCard if the value is unknown or null.
+        return PaymentMethod.creditCard;
+    }
+  }
+}
 
 class Order {
   final String id;
@@ -14,7 +51,8 @@ class Order {
   final String status;
   final String paymentStatus;
   final String serviceMethod;
-  final String paymentMethod;
+  final PaymentMethod
+  paymentMethod; // Changed from String to PaymentMethod enum
   final int reference;
   final String phone;
   final double latitude;
@@ -51,7 +89,7 @@ class Order {
 
   factory Order.fromJson(Map<String, dynamic> json) {
     // Helper to extract ID from a populated field (Map) or use it directly if it's a String
-    String _extractId(dynamic field) {
+    String extractId(dynamic field) {
       if (field is String) {
         return field;
       }
@@ -63,8 +101,8 @@ class Order {
 
     return Order(
       id: json['_id'] ?? '',
-      user: _extractId(json['user']),
-      restaurant: _extractId(json['restaurant']),
+      user: extractId(json['user']),
+      restaurant: extractId(json['restaurant']),
       restaurantName: json['restaurantName'],
       restaurantLatitude: (json['restaurantLatitude'] as num?)?.toDouble(),
       restaurantLongitude: (json['restaurantLongitude'] as num?)?.toDouble(),
@@ -77,15 +115,21 @@ class Order {
       status: json['status'] ?? 'pending',
       paymentStatus: json['paymentStatus'] ?? 'pending',
       serviceMethod: json['serviceMethod'] ?? 'delivery',
-      paymentMethod: json['paymentMethod'] ?? 'credit-card',
+      paymentMethod: PaymentMethodExtension.fromString(
+        json['paymentMethod'],
+      ), // Use the extension to parse the string
       reference: json['reference'] ?? 0,
       phone: json['phone'] ?? '',
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
       cookingTime: json['cookingTime'] ?? 0,
       livreur: json['livreur'],
-      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
-      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
+      createdAt: DateTime.parse(
+        json['createdAt'] ?? DateTime.now().toIso8601String(),
+      ),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
+          : null,
     );
   }
 
@@ -104,7 +148,8 @@ class Order {
       'status': status,
       'paymentStatus': paymentStatus,
       'serviceMethod': serviceMethod,
-      'paymentMethod': paymentMethod,
+      'paymentMethod':
+          paymentMethod.value, // Use the extension to get the string value
       'reference': reference,
       'phone': phone,
       'latitude': latitude,

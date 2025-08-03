@@ -39,8 +39,9 @@ class _CartScreenState extends State<CartScreen> {
           // Clear Cart Button
           Consumer<CartProvider>(
             builder: (context, cartProvider, child) {
-              if (cartProvider.cartItems.isEmpty)
+              if (cartProvider.cartItems.isEmpty) {
                 return const SizedBox.shrink();
+              }
               return IconButton(
                 icon: const Icon(Icons.delete_sweep),
                 onPressed: () => _showClearCartDialog(context),

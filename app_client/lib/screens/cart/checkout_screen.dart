@@ -1,4 +1,6 @@
+import 'package:app_client/services/location_service.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
@@ -6,8 +8,38 @@ import '../../providers/order_provider.dart';
 import '../../models/order.dart';
 import '../orders/orders_screen.dart';
 
-class CheckoutScreen extends StatelessWidget {
+class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
+
+  @override
+  State<CheckoutScreen> createState() => _CheckoutScreenState();
+}
+
+class _CheckoutScreenState extends State<CheckoutScreen> {
+  final LocationService _locationService = LocationService();
+  Position? _currentPosition;
+  String? _currentAddress;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocation();
+  }
+
+  void _getCurrentLocation() async {
+    try {
+      final position = await _locationService.getCurrentPosition();
+      // TODO: Implement reverse geocoding to get the address from the position
+      setState(() {
+        _currentPosition = position;
+        _currentAddress = '${position.latitude}, ${position.longitude}';
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error getting location: ${e.toString()}')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,22 +152,14 @@ class CheckoutScreen extends StatelessWidget {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Padding(
-                            padding: EdgeInsets.all(12.0),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '123 Main Street, Apt 4B',
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                                Text(
-                                  'Springfield, IL 62701',
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                                Text(
-                                  'John Doe, +1 555-123-4567',
-                                  style: TextStyle(color: Colors.grey),
+                                  _currentAddress ?? 'Loading address...',
+                                  style: const TextStyle(fontSize: 16),
                                 ),
                               ],
                             ),
@@ -158,10 +182,10 @@ class CheckoutScreen extends StatelessWidget {
                             padding: const EdgeInsets.all(12.0),
                             child: Row(
                               children: [
-                                const Icon(Icons.credit_card, size: 30),
+                                const Icon(Icons.money, size: 30),
                                 const SizedBox(width: 12),
                                 Text(
-                                  'Credit Card (**** **** **** 1234)',
+                                  'Cash on Delivery',
                                   style: Theme.of(context).textTheme.bodyLarge,
                                 ),
                               ],
@@ -179,7 +203,7 @@ class CheckoutScreen extends StatelessWidget {
                     color: Theme.of(context).cardColor,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withAlpha((255 * 0.1).round()),
                         spreadRadius: 1,
                         blurRadius: 10,
                         offset: const Offset(0, -2),
@@ -190,7 +214,9 @@ class CheckoutScreen extends StatelessWidget {
                     ),
                   ),
                   child: ElevatedButton(
-                    onPressed: cartProvider.cartItems.isEmpty
+                    onPressed:
+                        cartProvider.cartItems.isEmpty ||
+                            _currentPosition == null
                         ? null
                         : () async {
                             final authProvider = Provider.of<AuthProvider>(
@@ -236,14 +262,12 @@ class CheckoutScreen extends StatelessWidget {
                               status: 'pending',
                               paymentStatus: 'pending',
                               serviceMethod: 'delivery',
-                              paymentMethod: 'credit-card',
+                              paymentMethod: PaymentMethod.creditCard,
                               reference: DateTime.now()
                                   .millisecondsSinceEpoch, // A unique reference
                               phone: user.phone,
-                              latitude:
-                                  36.8065, // Placeholder latitude for Tunis
-                              longitude:
-                                  10.1815, // Placeholder longitude for Tunis
+                              latitude: _currentPosition!.latitude,
+                              longitude: _currentPosition!.longitude,
                               cookingTime:
                                   30, // Placeholder cooking time in minutes
                               createdAt: DateTime.now(),

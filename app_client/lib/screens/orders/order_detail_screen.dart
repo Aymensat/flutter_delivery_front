@@ -5,23 +5,26 @@ import 'order_tracking_screen.dart';
 class OrderDetailScreen extends StatelessWidget {
   final Order order;
 
-  const OrderDetailScreen({Key? key, required this.order}) : super(key: key);
+  const OrderDetailScreen({super.key, required this.order});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Order #${order.reference}'),
-      ),
+      appBar: AppBar(title: Text('Order #${order.reference}')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Status: ${order.status}', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              'Status: ${order.status}',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 16),
             Text('Restaurant: ${order.restaurantName}'),
-            Text('Delivery Address: ${order.latitude}, ${order.longitude}'), // Assuming you have address field
+            Text(
+              'Delivery Address: ${order.latitude}, ${order.longitude}',
+            ), // Assuming you have address field
             const SizedBox(height: 16),
             Text('Items:', style: Theme.of(context).textTheme.titleLarge),
             Expanded(
@@ -30,14 +33,19 @@ class OrderDetailScreen extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final item = order.items[index];
                   return ListTile(
-                    title: Text('Item ID: ${item.food}'), // Showing food ID for now
+                    title: Text(
+                      'Item ID: ${item.food}',
+                    ), // Showing food ID for now
                     trailing: Text('Quantity: ${item.quantity}'),
                   );
                 },
               ),
             ),
             const SizedBox(height: 16),
-            Text('Total: \$${order.totalPrice.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              'Total: \$${order.totalPrice.toStringAsFixed(2)}',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {

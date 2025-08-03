@@ -6,7 +6,7 @@ import '../services/review_service.dart';
 
 class ReviewProvider with ChangeNotifier {
   final ReviewService _reviewService = ReviewService();
-  Map<String, List<feedback_model.Feedback>> _reviews = {};
+  final Map<String, List<feedback_model.Feedback>> _reviews = {};
   bool _isLoading = false;
   String? _errorMessage;
 
