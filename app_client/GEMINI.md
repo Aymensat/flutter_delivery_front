@@ -37,13 +37,13 @@
     - **Done**: Corrected navigation from `order_detail_screen.dart` to `delivery_tracking_screen.dart`.
     - **Done**: Deleted the redundant `order_tracking_screen.dart` file.
     - **Done**: Changed WhatsApp button to initiate a call instead of a message.
+    - **Done**: The "Track Order" button is now always enabled for demo purposes.
 
-3.  **Order Details Screen (In Progress)**:
+3.  **Order Details Screen (Complete)**:
     - **Done**: Display food item names instead of IDs by fetching details from the backend using the newly created `FoodService` (`lib/services/food_service.dart`).
-    - **To Do**: 
-        - Fix the "Unknown Restaurant" issue. **Hypothesis**: The `restaurantName` field in the order object is not being populated by the backend. We need to inspect the raw API response to confirm.
-        - Display the list of `excludedIngredients` for each food item.
-        - Add the `createdAt` date to the order details view.
+    - **Done**: Fixed the "Unknown Restaurant" issue by correctly parsing the restaurant name from the API response.
+    - **Done**: Display the list of `excludedIngredients` for each food item.
+    - **Done**: Added the `createdAt` date to the order details view and formatted it.
 
 ## Completed Refactoring: Google Maps to OpenStreetMap
 
@@ -56,7 +56,3 @@
     -   Replaced `GoogleMap` with `FlutterMap` and corrected implementation.
 -   **`lib/screens/orders/delivery_tracking_screen.dart`**:
     -   Replaced `GoogleMap` with `FlutterMap` and corrected implementation.
-
-## Debugging Notes
-- Added `debugPrint` statements to `lib/providers/order_provider.dart` and `lib/services/order_service.dart` to inspect raw API responses for order data.
-
